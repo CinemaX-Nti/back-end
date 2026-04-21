@@ -1,4 +1,4 @@
-const { Hall, ShowTime, Seat } = require('../models');
+const { Hall, ShowTime, Seat } = require("../models");
 
 const getRowLabel = (rowIndex) => {
   let label = '';
@@ -27,34 +27,51 @@ const buildSeatNumbers = (rows, cols) => {
   return seats;
 };
 
+const buildSeatTypeMap = (seatLayout) =>
+  new Map(
+    (seatLayout || []).map((seatConfig) => [seatConfig.row.toUpperCase(), seatConfig.type])
+  );
+
 const seedSeatsForShowTime = async (showTimeId) => {
   const showTime = await ShowTime.findById(showTimeId).lean();
 
   if (!showTime) {
-    throw new Error('ShowTime not found.');
+    throw new Error("ShowTime not found.");
   }
 
   const hall = await Hall.findById(showTime.hallId).lean();
 
   if (!hall) {
-    throw new Error('Hall not found for this showtime.');
+    throw new Error("Hall not found for this showtime.");
   }
 
   const existingSeatsCount = await Seat.countDocuments({ showTimeId });
 
   if (existingSeatsCount > 0) {
-    throw new Error('Seats already exist for this showtime.');
+    throw new Error("Seats already exist for this showtime.");
   }
 
   const seatNumbers = buildSeatNumbers(hall.rows, hall.cols);
+  const seatTypeMap = buildSeatTypeMap(hall.seatLayout);
 
   const seatDocuments = seatNumbers.map((seatNumber) => ({
     showTimeId,
     seatNumber,
-    status: 'available',
+    status: "available",
+    type: seatTypeMap.get(seatNumber.match(/^[A-Z]+/)[0]) || "standard",
+    price:
+      showTime.pricing[
+        seatTypeMap.get(seatNumber.match(/^[A-Z]+/)[0]) || "standard"
+      ],
   }));
 
-  return Seat.insertMany(seatDocuments);
+  const createdSeats = await Seat.insertMany(seatDocuments);
+
+  await ShowTime.findByIdAndUpdate(showTimeId, {
+    availableSeats: createdSeats.length,
+  });
+
+  return createdSeats;
 };
 
 module.exports = {

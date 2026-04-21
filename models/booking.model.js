@@ -22,6 +22,16 @@ const bookingSchema = new mongoose.Schema(
         message: 'At least one seat must be selected.',
       },
     },
+    status: {
+      type: String,
+      enum: ['pending', 'confirmed', 'cancelled'],
+      default: 'confirmed',
+    },
+    totalAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
   },
   {
     timestamps: true,

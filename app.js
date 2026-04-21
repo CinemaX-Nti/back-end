@@ -2,7 +2,7 @@ const express = require("express");
 const apiRoutes = require("./routes");
 
 const app = express();
-
+require("dotenv").config();
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -11,7 +11,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api", apiRoutes);
+app.use("/", apiRoutes);
 
 // Handles unknown routes in one place.
 app.use((req, res) => {

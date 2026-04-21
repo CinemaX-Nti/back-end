@@ -4,10 +4,11 @@
   "description": "Team-ready Express and MongoDB backend starter for a cinema booking system",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "nodemon server.js",
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express": "^4.21.2",
     "mongoose": "^8.19.1"
   },
