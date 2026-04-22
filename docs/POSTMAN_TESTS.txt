@@ -14,14 +14,18 @@ Suggested test order
 2. Signup
 3. Signin
 4. Profile
-5. Create Hall
-6. Create Movie
-7. Create ShowTime
-8. Seed seats
-9. Get seats
-10. Create Booking
-11. Create Order
-12. Admin-only get all users
+5. Admin-only get all users
+6. Create Hall (admin)
+7. Get Halls
+8. Get Hall By ID
+9. Update Hall (admin)
+10. Halls overview
+11. Create Movie
+12. Create ShowTime
+13. Seed seats
+14. Get seats
+15. Create Booking
+16. Create Order
 
 
 1. Health Check
@@ -126,6 +130,9 @@ Expected:
 Method: POST
 URL: http://localhost:5000/halls
 
+Headers:
+Authorization: Bearer <ADMIN_TOKEN>
+
 Body:
 {
   "name": "Hall 1",
@@ -152,8 +159,60 @@ Save:
 Method: GET
 URL: http://localhost:5000/halls
 
+9. Get Hall By ID
+-----------------
+Method: GET
+URL: http://localhost:5000/halls/PUT_HALL_ID_HERE
 
-9. Create Movie
+Expected:
+- returns one hall by id
+
+10. Update Hall
+---------------
+Method: PATCH
+URL: http://localhost:5000/halls/PUT_HALL_ID_HERE
+
+Headers:
+Authorization: Bearer <ADMIN_TOKEN>
+
+Body (partial update example):
+{
+  "name": "Hall 1 Updated",
+  "cols": 7
+}
+
+Expected:
+- returns updated hall
+
+11. Delete Hall
+---------------
+Method: DELETE
+URL: http://localhost:5000/halls/PUT_HALL_ID_HERE
+
+Headers:
+Authorization: Bearer <ADMIN_TOKEN>
+
+Expected:
+- returns success message
+
+12. Halls Overview
+------------------
+Method: GET
+URL: http://localhost:5000/halls/overview
+
+Optional query:
+- `?view=upcoming` (default)
+- `?view=current`
+- `?view=all`
+
+Expected:
+- returns halls with:
+  - total seats
+  - current movie summary
+  - showtimes with movie and available seats
+
+
+13. Create Movie
 ---------------
 Method: POST
 URL: http://localhost:5000/movies
@@ -180,13 +239,13 @@ Save:
 - movie id as `MOVIE_ID`
 
 
-10. Get Movies
+14. Get Movies
 --------------
 Method: GET
 URL: http://localhost:5000/movies
 
 
-11. Create ShowTime
+15. Create ShowTime
 -------------------
 Method: POST
 URL: http://localhost:5000/showtimes
@@ -213,13 +272,13 @@ Save:
 - showtime id as `SHOWTIME_ID`
 
 
-12. Get ShowTimes
+16. Get ShowTimes
 -----------------
 Method: GET
 URL: http://localhost:5000/showtimes
 
 
-13. Seed Seats For ShowTime
+17. Seed Seats For ShowTime
 ---------------------------
 Method: POST
 URL: http://localhost:5000/showtimes/PUT_SHOWTIME_ID_HERE/seats/seed
@@ -229,7 +288,7 @@ Expected:
 - returns `totalSeats`
 
 
-14. Get Seats By ShowTime
+18. Get Seats By ShowTime
 -------------------------
 Method: GET
 URL: http://localhost:5000/showtimes/PUT_SHOWTIME_ID_HERE/seats
@@ -238,7 +297,7 @@ Expected:
 - returns seats like A1, A2, B1 ...
 
 
-15. Create Booking
+19. Create Booking
 ------------------
 Method: POST
 URL: http://localhost:5000/bookings
@@ -261,7 +320,7 @@ Save:
 - booking id as `BOOKING_ID`
 
 
-16. Get Bookings
+20. Get Bookings
 ----------------
 Method: GET
 URL: http://localhost:5000/bookings
@@ -270,7 +329,7 @@ Expected:
 - returns populated bookings
 
 
-17. Create Order
+21. Create Order
 ----------------
 Method: POST
 URL: http://localhost:5000/orders
@@ -298,7 +357,7 @@ Expected:
 - returns created order
 
 
-18. Get Orders
+22. Get Orders
 --------------
 Method: GET
 URL: http://localhost:5000/orders
