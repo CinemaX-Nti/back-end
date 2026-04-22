@@ -67,17 +67,17 @@ npm start
 
 ## Available API Groups
 
-- `/api/users`
-- `/api/movies`
-- `/api/halls`
-- `/api/showtimes`
-- `/api/bookings`
-- `/api/orders`
+- `/users`
+- `/movies`
+- `/halls`
+- `/showtimes`
+- `/bookings`
+- `/orders`
 
 Seat routes:
 
-- `GET /api/showtimes/:showTimeId/seats`
-- `POST /api/showtimes/:showTimeId/seats/seed`
+- `GET /showtimes/:showTimeId/seats`
+- `POST /showtimes/:showTimeId/seats/seed`
 
 ## Main Models
 
@@ -94,7 +94,9 @@ Seat routes:
 - Seats are unique per showtime
 - Seat indexing is added for `showTimeId + status`
 - Booking logic still needs full seat validation and seat status updates
-- Authentication is not implemented yet
+- Authentication and role-based authorization are implemented for user profile/admin flows
+- Hall module now supports full CRUD + zod validation + admin protection on write operations
+- Halls overview endpoint is available at `GET /halls/overview`
 
 ## Team Documentation
 
@@ -102,6 +104,7 @@ Seat routes:
 - [Architecture](./docs/ARCHITECTURE.md)
 - [Workflow](./docs/WORKFLOW.md)
 - [Team Plan](./docs/TEAM_PLAN.md)
+- [Halls API](./docs/HALLS_API.md)
 
 ## Recommended Next Steps
 
