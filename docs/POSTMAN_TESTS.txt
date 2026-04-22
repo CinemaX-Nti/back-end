@@ -1,0 +1,387 @@
+POSTMAN TESTS
+==============
+
+Base URL
+http://localhost:5000
+
+Note
+- In this project, routes are mounted directly on `/`, not `/api`.
+- Use `Content-Type: application/json` for all POST requests.
+- Protected routes need `Authorization: Bearer <TOKEN>`.
+
+Suggested test order
+1. Health check
+2. Signup
+3. Signin
+4. Profile
+5. Create Hall
+6. Create Movie
+7. Create ShowTime
+8. Seed seats
+9. Get seats
+10. Create Booking
+11. Create Order
+12. Admin-only get all users
+
+
+1. Health Check
+---------------
+Method: GET
+URL: http://localhost:5000/
+
+Expected:
+{
+  "message": "Cinema Booking API is running"
+}
+
+
+2. Signup
+---------
+Method: POST
+URL: http://localhost:5000/users/signup
+
+Body:
+{
+  "fullName": "eslam gamal",
+  "email": "ahmed@example.com",
+  "password": "123456",
+  "phoneNumber": "01012345678",
+  "dateOfBirth": "2000-05-15"
+}
+
+Expected:
+- returns `success: true`
+- returns `data.user`
+- returns `data.token`
+
+Save:
+- user token as `USER_TOKEN`
+- user id as `USER_ID`
+
+
+3. Signin
+---------
+Method: POST
+URL: http://localhost:5000/users/signin
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "password": "123456"
+}
+
+Expected:
+- returns `success: true`
+- returns `data.user`
+- returns `data.token`
+
+
+4. Login With Google
+--------------------
+Method: POST
+URL: http://localhost:5000/users/google
+
+Body:
+{
+  "idToken": "PUT_GOOGLE_ID_TOKEN_HERE"
+}
+
+Expected:
+- returns `success: true`
+- creates a new google user if email does not exist
+- returns `data.token`
+
+Required env:
+- GOOGLE_CLIENT_ID
+- JWT_SECRET
+
+
+5. Get My Profile
+-----------------
+Method: GET
+URL: http://localhost:5000/users/profile
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Expected:
+- returns logged-in user data
+
+
+6. Get All Users
+----------------
+Method: GET
+URL: http://localhost:5000/users/
+
+Headers:
+Authorization: Bearer <ADMIN_TOKEN>
+
+Expected:
+- works only if logged-in user has `"role": "admin"`
+- normal user should get 403
+
+
+7. Create Hall
+--------------
+Method: POST
+URL: http://localhost:5000/halls
+
+Body:
+{
+  "name": "Hall 1",
+  "rows": 5,
+  "cols": 6,
+  "seatLayout": [
+    { "row": "A", "type": "standard" },
+    { "row": "B", "type": "standard" },
+    { "row": "C", "type": "premium" },
+    { "row": "D", "type": "premium" },
+    { "row": "E", "type": "vip" }
+  ]
+}
+
+Expected:
+- returns created hall
+
+Save:
+- hall id as `HALL_ID`
+
+
+8. Get Halls
+------------
+Method: GET
+URL: http://localhost:5000/halls
+
+
+9. Create Movie
+---------------
+Method: POST
+URL: http://localhost:5000/movies
+
+Body:
+{
+  "createdBy": "PUT_USER_ID_OR_ADMIN_ID_HERE",
+  "title": "Interstellar",
+  "description": "A science fiction movie about space and time.",
+  "duration": 169,
+  "genre": ["Sci-Fi", "Drama"],
+  "language": "English",
+  "releaseDate": "2026-05-01T00:00:00.000Z",
+  "trailerUrl": "https://example.com/trailer",
+  "posterUrl": "https://example.com/poster.jpg",
+  "rating": 8.8,
+  "status": "now_showing"
+}
+
+Expected:
+- returns created movie
+
+Save:
+- movie id as `MOVIE_ID`
+
+
+10. Get Movies
+--------------
+Method: GET
+URL: http://localhost:5000/movies
+
+
+11. Create ShowTime
+-------------------
+Method: POST
+URL: http://localhost:5000/showtimes
+
+Body:
+{
+  "movieId": "PUT_MOVIE_ID_HERE",
+  "hallId": "PUT_HALL_ID_HERE",
+  "startTime": "2026-05-10T18:00:00.000Z",
+  "endTime": "2026-05-10T21:00:00.000Z",
+  "pricing": {
+    "standard": 120,
+    "premium": 180,
+    "vip": 250
+  },
+  "status": "scheduled",
+  "format": "IMAX"
+}
+
+Expected:
+- returns created showtime
+
+Save:
+- showtime id as `SHOWTIME_ID`
+
+
+12. Get ShowTimes
+-----------------
+Method: GET
+URL: http://localhost:5000/showtimes
+
+
+13. Seed Seats For ShowTime
+---------------------------
+Method: POST
+URL: http://localhost:5000/showtimes/PUT_SHOWTIME_ID_HERE/seats/seed
+
+Expected:
+- creates seats based on the hall layout
+- returns `totalSeats`
+
+
+14. Get Seats By ShowTime
+-------------------------
+Method: GET
+URL: http://localhost:5000/showtimes/PUT_SHOWTIME_ID_HERE/seats
+
+Expected:
+- returns seats like A1, A2, B1 ...
+
+
+15. Create Booking
+------------------
+Method: POST
+URL: http://localhost:5000/bookings
+
+Body:
+{
+  "userId": "PUT_USER_ID_HERE",
+  "showTimeId": "PUT_SHOWTIME_ID_HERE",
+  "seats": ["A1", "A2"]
+}
+
+Expected:
+- checks if showtime exists
+- checks if seats exist
+- checks if seats are available
+- books seats
+- calculates `totalAmount`
+
+Save:
+- booking id as `BOOKING_ID`
+
+
+16. Get Bookings
+----------------
+Method: GET
+URL: http://localhost:5000/bookings
+
+Expected:
+- returns populated bookings
+
+
+17. Create Order
+----------------
+Method: POST
+URL: http://localhost:5000/orders
+
+Body:
+{
+  "bookingId": "PUT_BOOKING_ID_HERE",
+  "items": [
+    {
+      "name": "Popcorn",
+      "price": 80,
+      "quantity": 2
+    },
+    {
+      "name": "Cola",
+      "price": 40,
+      "quantity": 1
+    }
+  ],
+  "totalAmount": 200,
+  "paymentStatus": "paid"
+}
+
+Expected:
+- returns created order
+
+
+18. Get Orders
+--------------
+Method: GET
+URL: http://localhost:5000/orders
+
+
+Validation tests for auth
+-------------------------
+
+Signup validation error
+Method: POST
+URL: http://localhost:5000/users/signup
+
+Body:
+{
+  "fullName": "ab",
+  "email": "wrong-email",
+  "password": "123"
+}
+
+Expected:
+- status 400
+- `message: "Validation error"`
+
+
+Signin validation error
+Method: POST
+URL: http://localhost:5000/users/signin
+
+Body:
+{
+  "email": "wrong-email",
+  "password": "123"
+}
+
+Expected:
+- status 400
+
+
+Wrong password test
+-------------------
+Method: POST
+URL: http://localhost:5000/users/signin
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "password": "wrongpass"
+}
+
+Expected:
+- status 401
+- `message: "Invalid email or password"`
+
+
+Unauthorized profile test
+-------------------------
+Method: GET
+URL: http://localhost:5000/users/profile
+
+Expected:
+- status 401 if token is missing
+
+
+Forbidden admin test
+--------------------
+Method: GET
+URL: http://localhost:5000/users/
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Expected:
+- status 403
+- `message: "Access denied: Admins only"`
+
+
+Useful Postman variables
+------------------------
+- baseUrl = http://localhost:5000
+- userToken = token from signup/signin
+- adminToken = token from admin account
+- userId = id from signup response
+- hallId = id from create hall response
+- movieId = id from create movie response
+- showtimeId = id from create showtime response
+- bookingId = id from create booking response
