@@ -22,14 +22,23 @@ const userSchema = new mongoose.Schema(
       minlength: 8,
       select: false,
     },
+    provider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
+    confirmed: {
+      type: Boolean,
+      default: false,
+    },
     role: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
     },
     phoneNumber: {
-      type: Number,
-      required: true,
+      type: String,
+      trim: true,
     },
     dateOfBirth: Date,
   },
