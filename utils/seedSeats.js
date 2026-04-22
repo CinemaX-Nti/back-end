@@ -1,7 +1,7 @@
 const { Hall, ShowTime, Seat } = require("../models");
 
 const getRowLabel = (rowIndex) => {
-  let label = '';
+  let label = "";
   let current = rowIndex + 1;
 
   while (current > 0) {
@@ -29,17 +29,22 @@ const buildSeatNumbers = (rows, cols) => {
 
 const buildSeatTypeMap = (seatLayout) =>
   new Map(
-    (seatLayout || []).map((seatConfig) => [seatConfig.row.toUpperCase(), seatConfig.type])
+    (seatLayout || []).map((seatConfig) => [
+      seatConfig.row.toUpperCase(),
+      seatConfig.type,
+    ]),
   );
 
 const seedSeatsForShowTime = async (showTimeId) => {
   const showTime = await ShowTime.findById(showTimeId).lean();
+  console.log(showTime);
 
   if (!showTime) {
     throw new Error("ShowTime not found.");
   }
 
   const hall = await Hall.findById(showTime.hallId).lean();
+  console.log(hall);
 
   if (!hall) {
     throw new Error("Hall not found for this showtime.");

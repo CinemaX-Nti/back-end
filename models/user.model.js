@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address.'],
+      match: [/^\S+@\S+\.\S+$/, "Please provide a valid email address."],
     },
     password: {
       type: String,
@@ -24,20 +24,26 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      enum: ["user", "admin"],
+      default: "user",
     },
+    phoneNumber: {
+      type: Number,
+      required: true,
+    },
+    dateOfBirth: Date,
   },
+
   {
     timestamps: true,
-  }
+  },
 );
 
-userSchema.set('toJSON', {
+userSchema.set("toJSON", {
   transform: (document, returnedDocument) => {
     delete returnedDocument.password;
     return returnedDocument;
   },
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

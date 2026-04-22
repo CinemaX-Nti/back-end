@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const movieSchema = new mongoose.Schema(
   {
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     title: {
       type: String,
       required: true,
@@ -22,12 +27,16 @@ const movieSchema = new mongoose.Schema(
       required: true,
       validate: {
         validator: (value) => Array.isArray(value) && value.length > 0,
-        message: 'At least one genre is required.',
+        message: "At least one genre is required.",
       },
     },
     language: String,
     releaseDate: Date,
-    posterUrl: String,
+    trailerUrl: String,
+    posterUrl: {
+      type: String,
+      required: true,
+    },
     rating: {
       type: Number,
       min: 0,
@@ -35,13 +44,13 @@ const movieSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['now_showing', 'coming_soon', 'archived'],
-      default: 'coming_soon',
+      enum: ["now_showing", "coming_soon", "archived"],
+      default: "coming_soon",
     },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
+    // isActive: {
+    //   type: Boolean,
+    //   default: true,
+    // },
   },
   {
     timestamps: true,

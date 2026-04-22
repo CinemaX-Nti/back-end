@@ -24,7 +24,8 @@ const createBooking = async (req, res, next) => {
     }
 
     const invalidSeatValue = req.body.seats.find(
-      (seatNumber) => typeof seatNumber !== "string" || seatNumber.trim() === "",
+      (seatNumber) =>
+        typeof seatNumber !== "string" || seatNumber.trim() === "",
     );
 
     if (invalidSeatValue !== undefined) {
@@ -90,6 +91,7 @@ const createBooking = async (req, res, next) => {
         showTimeId,
         seatNumber: { $in: uniqueSeatNumbers },
       },
+
       {
         $set: {
           status: "booked",
