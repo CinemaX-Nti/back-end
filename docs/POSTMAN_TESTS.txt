@@ -12,20 +12,29 @@ Note
 Suggested test order
 1. Health check
 2. Signup
-3. Signin
-4. Profile
-5. Admin-only get all users
-6. Create Hall (admin)
-7. Get Halls
-8. Get Hall By ID
-9. Update Hall (admin)
-10. Halls overview
-11. Create Movie
-12. Create ShowTime
-13. Seed seats
-14. Get seats
-15. Create Booking
-16. Create Order
+3. Confirm email
+4. Resend confirmation OTP
+5. Signin
+6. Update password
+7. Forget password
+8. Resend password reset OTP
+9. Reset password
+10. Signin with new password
+11. Request delete profile OTP
+12. Delete profile
+13. Profile
+14. Admin-only get all users
+15. Create Hall (admin)
+16. Get Halls
+17. Get Hall By ID
+18. Update Hall (admin)
+19. Halls overview
+20. Create Movie
+21. Create ShowTime
+22. Seed seats
+23. Get seats
+24. Create Booking
+25. Create Order
 
 
 1. Health Check
@@ -56,14 +65,51 @@ Body:
 Expected:
 - returns `success: true`
 - returns `data.user`
-- returns `data.token`
+- returns `data.requiresEmailConfirmation: true`
+- sends a confirmation OTP email
 
 Save:
-- user token as `USER_TOKEN`
 - user id as `USER_ID`
+- confirmation OTP from email inbox as `CONFIRMATION_OTP`
 
 
-3. Signin
+3. Confirm Email
+----------------
+Method: POST
+URL: http://localhost:5000/users/confirm-email
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "otp": "PUT_CONFIRMATION_OTP_HERE"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- `message: "Email confirmed successfully"`
+
+
+4. Resend Confirmation OTP
+--------------------------
+Method: POST
+URL: http://localhost:5000/users/resend-confirmation-otp
+
+Body:
+{
+  "email": "ahmed@example.com"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- sends a new confirmation OTP email if the account is not confirmed
+
+Save:
+- latest confirmation OTP from email inbox as `CONFIRMATION_OTP`
+
+
+5. Signin
 ---------
 Method: POST
 URL: http://localhost:5000/users/signin
@@ -79,8 +125,11 @@ Expected:
 - returns `data.user`
 - returns `data.token`
 
+Save:
+- user token as `USER_TOKEN`
 
-4. Login With Google
+
+6. Login With Google
 --------------------
 Method: POST
 URL: http://localhost:5000/users/google
@@ -100,8 +149,157 @@ Required env:
 - JWT_SECRET
 
 
-5. Get My Profile
+7. Update Password
+------------------
+Method: PATCH
+URL: http://localhost:5000/users/update-password
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Body:
+{
+  "currentPassword": "123456",
+  "newPassword": "12345678"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- `message: "Password updated successfully"`
+
+Notes:
+- works only for local accounts
+- use the new password in the next signin test
+
+
+8. Forget Password
+------------------
+Method: POST
+URL: http://localhost:5000/users/forget-password
+
+Body:
+{
+  "email": "ahmed@example.com"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- returns a generic success message even if the email does not exist
+- sends an OTP email if the account is a confirmed local account
+
+Required env:
+- EMAIL
+- EMAIL_PASSWORD
+
+Save:
+- OTP from email inbox as `RESET_OTP`
+
+
+9. Resend Password Reset OTP
+----------------------------
+Method: POST
+URL: http://localhost:5000/users/resend-password-reset-otp
+
+Body:
+{
+  "email": "ahmed@example.com"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- if a reset request is active, sends a new OTP email
+
+Save:
+- latest OTP from email inbox as `RESET_OTP`
+
+
+10. Reset Password
 -----------------
+Method: POST
+URL: http://localhost:5000/users/reset-password
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "otp": "PUT_RESET_OTP_HERE",
+  "newPassword": "newpass123"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- `message: "Password reset successfully"`
+
+Notes:
+- use the most recent OTP from the email
+- OTP expires after 10 minutes
+
+
+11. Signin With New Password
+---------------------------
+Method: POST
+URL: http://localhost:5000/users/signin
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "password": "newpass123"
+}
+
+Expected:
+- returns `success: true`
+- confirms the password reset worked
+- returns a valid new token
+
+Save:
+- replace `USER_TOKEN` with the new token if needed
+
+
+12. Request Delete Profile OTP
+------------------------------
+Method: POST
+URL: http://localhost:5000/users/request-delete-profile-otp
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Expected:
+- status 200
+- returns `success: true`
+- `message: "A profile deletion OTP has been sent to your email."`
+
+Save:
+- deletion OTP from email inbox as `DELETE_PROFILE_OTP`
+
+
+13. Delete Profile
+------------------
+Method: DELETE
+URL: http://localhost:5000/users/delete-profile
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Body:
+{
+  "otp": "PUT_DELETE_PROFILE_OTP_HERE"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- `message: "Profile deleted successfully"`
+
+Notes:
+- this deletes the current authenticated user account
+- after this request, the same token should no longer work
+
+
+14. Get My Profile
+------------------
 Method: GET
 URL: http://localhost:5000/users/profile
 
@@ -112,8 +310,8 @@ Expected:
 - returns logged-in user data
 
 
-6. Get All Users
-----------------
+15. Get All Users
+-----------------
 Method: GET
 URL: http://localhost:5000/users/
 
@@ -125,8 +323,8 @@ Expected:
 - normal user should get 403
 
 
-7. Create Hall
---------------
+16. Create Hall
+---------------
 Method: POST
 URL: http://localhost:5000/halls
 
@@ -154,20 +352,20 @@ Save:
 - hall id as `HALL_ID`
 
 
-8. Get Halls
-------------
+17. Get Halls
+-------------
 Method: GET
 URL: http://localhost:5000/halls
 
-9. Get Hall By ID
------------------
+18. Get Hall By ID
+------------------
 Method: GET
 URL: http://localhost:5000/halls/PUT_HALL_ID_HERE
 
 Expected:
 - returns one hall by id
 
-10. Update Hall
+19. Update Hall
 ---------------
 Method: PATCH
 URL: http://localhost:5000/halls/PUT_HALL_ID_HERE
@@ -184,7 +382,7 @@ Body (partial update example):
 Expected:
 - returns updated hall
 
-11. Delete Hall
+20. Delete Hall
 ---------------
 Method: DELETE
 URL: http://localhost:5000/halls/PUT_HALL_ID_HERE
@@ -195,7 +393,7 @@ Authorization: Bearer <ADMIN_TOKEN>
 Expected:
 - returns success message
 
-12. Halls Overview
+21. Halls Overview
 ------------------
 Method: GET
 URL: http://localhost:5000/halls/overview
@@ -212,7 +410,7 @@ Expected:
   - showtimes with movie and available seats
 
 
-13. Create Movie
+22. Create Movie
 ---------------
 Method: POST
 URL: http://localhost:5000/movies
@@ -239,13 +437,13 @@ Save:
 - movie id as `MOVIE_ID`
 
 
-14. Get Movies
+23. Get Movies
 --------------
 Method: GET
 URL: http://localhost:5000/movies
 
 
-15. Create ShowTime
+24. Create ShowTime
 -------------------
 Method: POST
 URL: http://localhost:5000/showtimes
@@ -272,13 +470,13 @@ Save:
 - showtime id as `SHOWTIME_ID`
 
 
-16. Get ShowTimes
+25. Get ShowTimes
 -----------------
 Method: GET
 URL: http://localhost:5000/showtimes
 
 
-17. Seed Seats For ShowTime
+26. Seed Seats For ShowTime
 ---------------------------
 Method: POST
 URL: http://localhost:5000/showtimes/PUT_SHOWTIME_ID_HERE/seats/seed
@@ -288,7 +486,7 @@ Expected:
 - returns `totalSeats`
 
 
-18. Get Seats By ShowTime
+27. Get Seats By ShowTime
 -------------------------
 Method: GET
 URL: http://localhost:5000/showtimes/PUT_SHOWTIME_ID_HERE/seats
@@ -297,7 +495,7 @@ Expected:
 - returns seats like A1, A2, B1 ...
 
 
-19. Create Booking
+28. Create Booking
 ------------------
 Method: POST
 URL: http://localhost:5000/bookings
@@ -320,7 +518,7 @@ Save:
 - booking id as `BOOKING_ID`
 
 
-20. Get Bookings
+29. Get Bookings
 ----------------
 Method: GET
 URL: http://localhost:5000/bookings
@@ -329,7 +527,7 @@ Expected:
 - returns populated bookings
 
 
-21. Create Order
+30. Create Order
 ----------------
 Method: POST
 URL: http://localhost:5000/orders
@@ -357,7 +555,7 @@ Expected:
 - returns created order
 
 
-22. Get Orders
+31. Get Orders
 --------------
 Method: GET
 URL: http://localhost:5000/orders
@@ -434,12 +632,102 @@ Expected:
 - `message: "Access denied: Admins only"`
 
 
+Signin before email confirmation
+--------------------------------
+Method: POST
+URL: http://localhost:5000/users/signin
+
+Body:
+{
+  "email": "new-user@example.com",
+  "password": "123456"
+}
+
+Expected:
+- status 403
+- `message: "Please confirm your email before signing in"`
+- returns `requiresEmailConfirmation: true`
+
+
+Confirm email with invalid OTP
+------------------------------
+Method: POST
+URL: http://localhost:5000/users/confirm-email
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "otp": "000000"
+}
+
+Expected:
+- status 401
+- `message: "Invalid or expired OTP"`
+
+
+Wrong current password test
+---------------------------
+Method: PATCH
+URL: http://localhost:5000/users/update-password
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Body:
+{
+  "currentPassword": "wrongpass",
+  "newPassword": "12345678"
+}
+
+Expected:
+- status 401
+- `message: "Current password is incorrect"`
+
+
+Reset password with invalid OTP
+-------------------------------
+Method: POST
+URL: http://localhost:5000/users/reset-password
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "otp": "000000",
+  "newPassword": "newpass123"
+}
+
+Expected:
+- status 401
+- `message: "Invalid or expired OTP"`
+
+
+Delete profile with invalid OTP
+-------------------------------
+Method: DELETE
+URL: http://localhost:5000/users/delete-profile
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Body:
+{
+  "otp": "000000"
+}
+
+Expected:
+- status 401
+- `message: "Invalid or expired OTP"`
+
+
 Useful Postman variables
 ------------------------
 - baseUrl = http://localhost:5000
 - userToken = token from signup/signin
 - adminToken = token from admin account
 - userId = id from signup response
+- confirmationOtp = OTP from email confirmation message
+- resetOtp = OTP from password reset email
+- deleteProfileOtp = OTP from profile deletion email
 - hallId = id from create hall response
 - movieId = id from create movie response
 - showtimeId = id from create showtime response

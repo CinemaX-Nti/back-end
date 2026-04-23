@@ -30,8 +30,61 @@ const gmailLoginSchema = z.object({
   }),
 });
 
+const updatePasswordSchema = z.object({
+  body: z.object({
+    currentPassword: z.string().min(6),
+    newPassword: z.string().min(6),
+  }),
+});
+
+const forgetPasswordSchema = z.object({
+  body: z.object({
+    email: z.string().trim().email(),
+  }),
+});
+
+const resendPasswordResetOtpSchema = z.object({
+  body: z.object({
+    email: z.string().trim().email(),
+  }),
+});
+
+const resetPasswordSchema = z.object({
+  body: z.object({
+    email: z.string().trim().email(),
+    otp: z.string().trim().min(4),
+    newPassword: z.string().min(6),
+  }),
+});
+
+const confirmEmailSchema = z.object({
+  body: z.object({
+    email: z.string().trim().email(),
+    otp: z.string().trim().min(4),
+  }),
+});
+
+const resendConfirmationOtpSchema = z.object({
+  body: z.object({
+    email: z.string().trim().email(),
+  }),
+});
+
+const deleteProfileSchema = z.object({
+  body: z.object({
+    otp: z.string().trim().min(4),
+  }),
+});
+
 module.exports = {
   signupSchema,
   signinSchema,
   gmailLoginSchema,
+  updatePasswordSchema,
+  forgetPasswordSchema,
+  resendPasswordResetOtpSchema,
+  resetPasswordSchema,
+  confirmEmailSchema,
+  resendConfirmationOtpSchema,
+  deleteProfileSchema,
 };
