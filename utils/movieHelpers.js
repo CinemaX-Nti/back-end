@@ -1,5 +1,17 @@
 const mongoose = require("mongoose");
 
+const GENRES = [
+  "Action",
+  "Comedy",
+  "Drama",
+  "Horror",
+  "Sci-Fi",
+  "Romance",
+  "Thriller",
+  "Animation",
+  "Documentary",
+];
+
 // Pagination constants
 const PAGINATION_LIMITS = {
   MIN_LIMIT: 1,
@@ -144,4 +156,5 @@ module.exports = {
   formatPaginatedResponse,
   isValidObjectId,
   buildMovieFilter,
+  GENRES,
 };

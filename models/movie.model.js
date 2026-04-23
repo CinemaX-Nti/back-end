@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { GENRES } = require("../utils/movieHelpers");
 
 const movieSchema = new mongoose.Schema(
   {
@@ -11,6 +12,7 @@ const movieSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      unique: true,
     },
     description: {
       type: String,
@@ -25,12 +27,14 @@ const movieSchema = new mongoose.Schema(
     genre: {
       type: [String],
       required: true,
-      validate: {
-        validator: (value) => Array.isArray(value) && value.length > 0,
-        message: "At least one genre is required.",
-      },
+      enum: GENRES,
     },
-    language: String,
+    language: {
+      type: String,
+      minLength: 2,
+      maxLength: 15,
+      trim: true,
+    },
     releaseDate: Date,
     trailerUrl: String,
     posterUrl: {
@@ -60,5 +64,7 @@ const movieSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+movieSchema.index({ title: 1, description: 1 }, { unique: true });
 
 module.exports = mongoose.model("Movie", movieSchema);

@@ -28,7 +28,7 @@ const router = express.Router();
 router.post("/", auth, isAdmin, validation(createMovieSchema), createMovie);
 
 // Public routes - Specific paths first
-router.get("/search", validation(searchMoviesSchema), searchMovies);
+router.get("/", validation(searchMoviesSchema), searchMovies);
 router.get("/filter", validation(filterMoviesSchema), filterMovies);
 router.get("/genre", getMoviesByGenre);
 router.get("/status", getMoviesByStatus);
