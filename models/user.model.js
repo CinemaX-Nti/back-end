@@ -42,6 +42,28 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     dateOfBirth: Date,
+    passwordResetOtp: {
+      code: {
+        type: String,
+        select: false,
+      },
+      expiresAt: Date,
+    },
+    confirmationOtp: {
+      code: {
+        type: String,
+        select: false,
+      },
+      expiresAt: Date,
+    },
+    deleteProfileOtp: {
+      code: {
+        type: String,
+        select: false,
+      },
+      expiresAt: Date,
+    },
+    changeCredentialTime: Date,
   },
 
   {
