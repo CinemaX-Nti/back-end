@@ -47,10 +47,14 @@ const movieSchema = new mongoose.Schema(
       enum: ["now_showing", "coming_soon", "archived"],
       default: "coming_soon",
     },
-    // isActive: {
-    //   type: Boolean,
-    //   default: true,
-    // },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    bookingCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
