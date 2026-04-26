@@ -2,7 +2,8 @@ const { z } = require("zod");
 
 const signupSchema = z.object({
   body: z.object({
-    fullName: z.string().trim().min(3),
+    firstName: z.string().trim().min(2),
+    lastName: z.string().trim().min(2),
     email: z.string().trim().email(),
     password: z.string().min(6),
     phoneNumber: z
@@ -35,6 +36,34 @@ const updatePasswordSchema = z.object({
     currentPassword: z.string().min(6),
     newPassword: z.string().min(6),
   }),
+});
+
+const updateProfileSchema = z.object({
+  body: z
+    .object({
+      firstName: z.string().trim().min(2).optional(),
+      lastName: z.string().trim().min(2).optional(),
+      email: z.string().trim().email().optional(),
+      phoneNumber: z
+        .string()
+        .trim()
+        .regex(
+          /^(?:\+20|0)?1[0125]\d{8}$/,
+          "Invalid Egyptian phone number",
+        )
+        .optional(),
+    })
+    .refine(
+      (data) =>
+        data.firstName !== undefined ||
+        data.lastName !== undefined ||
+        data.email !== undefined ||
+        data.phoneNumber !== undefined,
+      {
+        message:
+          "At least one field is required: firstName, lastName, email, or phoneNumber",
+      },
+    ),
 });
 
 const forgetPasswordSchema = z.object({
@@ -81,6 +110,7 @@ module.exports = {
   signinSchema,
   gmailLoginSchema,
   updatePasswordSchema,
+  updateProfileSchema,
   forgetPasswordSchema,
   resendPasswordResetOtpSchema,
   resetPasswordSchema,
