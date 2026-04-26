@@ -55,7 +55,8 @@ URL: http://localhost:5000/users/signup
 
 Body:
 {
-  "fullName": "eslam gamal",
+  "firstName": "eslam",
+  "lastName": "gamal",
   "email": "ahmed@example.com",
   "password": "123456",
   "phoneNumber": "01012345678",
@@ -570,7 +571,8 @@ URL: http://localhost:5000/users/signup
 
 Body:
 {
-  "fullName": "ab",
+  "firstName": "a",
+  "lastName": "b",
   "email": "wrong-email",
   "password": "123"
 }

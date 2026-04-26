@@ -205,8 +205,9 @@ const generateToken = (user) => {
 
 const signup = async (req, res, next) => {
   try {
-    const { fullName, email, password, phoneNumber, dateOfBirth } = req.body;
+    const { firstName, lastName, email, password, phoneNumber, dateOfBirth } = req.body;
     const normalizedEmail = normalizeEmail(email);
+    const fullName = `${firstName} ${lastName}`.trim();
 
     const existingUser = await User.findOne({ email: normalizedEmail });
 
@@ -387,6 +388,80 @@ const updatePassword = async (req, res, next) => {
       message: "Password updated successfully",
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+const updateProfile = async (req, res, next) => {
+  try {
+    const { firstName, lastName, email, phoneNumber } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    let emailChanged = false;
+
+    if (firstName !== undefined || lastName !== undefined) {
+      const nameParts = (user.name || "").trim().split(/\s+/).filter(Boolean);
+      const nextFirstName = firstName !== undefined ? firstName.trim() : (nameParts[0] || "");
+      const nextLastName =
+        lastName !== undefined
+          ? lastName.trim()
+          : (nameParts.slice(1).join(" ") || "");
+
+      user.name = `${nextFirstName} ${nextLastName}`.trim();
+    }
+
+    if (phoneNumber !== undefined) {
+      user.phoneNumber = phoneNumber;
+    }
+
+    if (email !== undefined) {
+      const normalizedEmail = normalizeEmail(email);
+
+      if (normalizedEmail !== user.email) {
+        const existingUser = await User.findOne({
+          email: normalizedEmail,
+          _id: { $ne: user._id },
+        });
+
+        if (existingUser) {
+          return res.status(409).json({ message: "Email already exists" });
+        }
+
+        user.email = normalizedEmail;
+        emailChanged = true;
+
+        if (isPasswordManagedProvider(user)) {
+          user.confirmed = false;
+        }
+      }
+    }
+
+    await user.save();
+
+    if (emailChanged && isPasswordManagedProvider(user)) {
+      await sendConfirmationOtpEmail(user);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: emailChanged && isPasswordManagedProvider(user)
+        ? "Profile updated successfully. Please confirm your new email."
+        : "Profile updated successfully",
+      data: {
+        user,
+        requiresEmailConfirmation:
+          emailChanged && isPasswordManagedProvider(user),
+      },
+    });
+  } catch (error) {
+    if (error && error.code === 11000) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
+
     next(error);
   }
 };
@@ -621,6 +696,7 @@ module.exports = {
   signup,
   signin,
   loginWithGmail,
+  updateProfile,
   updatePassword,
   forgetPassword,
   resendPasswordResetOtp,

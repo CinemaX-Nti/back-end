@@ -5,6 +5,7 @@ const {
   loginWithGmail,
   getProfile,
   getUsers,
+  updateProfile,
   updatePassword,
   forgetPassword,
   resendPasswordResetOtp,
@@ -20,6 +21,7 @@ const {
   signupSchema,
   signinSchema,
   gmailLoginSchema,
+  updateProfileSchema,
   updatePasswordSchema,
   forgetPasswordSchema,
   resendPasswordResetOtpSchema,
@@ -34,6 +36,7 @@ const router = express.Router();
 router.post("/signup", validation(signupSchema), signup);
 router.post("/signin", validation(signinSchema), signin);
 router.post("/google", validation(gmailLoginSchema), loginWithGmail);
+router.patch("/profile", auth, validation(updateProfileSchema), updateProfile);
 router.patch(
   "/update-password",
   auth,
