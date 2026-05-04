@@ -1,14 +1,13 @@
 const { z } = require("zod");
 
-const { GENRES } = require("../utils/movieHelpers");
-
-// Pagination limits
+// These match the limits in movieHelpers.js
 const PAGINATION_LIMITS = {
   MIN_LIMIT: 1,
   MAX_LIMIT: 100,
   DEFAULT_LIMIT: 10,
 };
 
+// Validation for creating a new movie
 const createMovieSchema = z.object({
   body: z.object({
     title: z
@@ -59,6 +58,7 @@ const createMovieSchema = z.object({
   }),
 });
 
+// Validation for updating a movie - all fields optional, rejects unknown fields
 const updateMovieSchema = z.object({
   body: z
     .object({
@@ -105,6 +105,7 @@ const updateMovieSchema = z.object({
     .strict("No unknown fields allowed"),
 });
 
+// Validation for filtering movies - includes rating/duration range checks
 const filterMoviesSchema = z.object({
   query: z
     .object({
@@ -170,24 +171,12 @@ const filterMoviesSchema = z.object({
     ),
 });
 
-const searchMoviesSchema = z.object({
-  query: z.object({
-    search: z
-      .string()
-      .trim()
-      .min(1, "Search query required")
-      .max(200, "Search query must not exceed 200 characters"),
-    page: z.coerce.number().int().positive().default(1).optional(),
-    limit: z.coerce
-      .number()
-      .int()
-      .min(PAGINATION_LIMITS.MIN_LIMIT, "Limit must be at least 1")
-      .max(
-        PAGINATION_LIMITS.MAX_LIMIT,
-        `Limit must not exceed ${PAGINATION_LIMITS.MAX_LIMIT}`,
-      )
-      .default(PAGINATION_LIMITS.DEFAULT_LIMIT)
-      .optional(),
+// Validation for bulk delete request body
+const bulkDeleteMoviesSchema = z.object({
+  body: z.object({
+    movieIds: z
+      .array(z.string().min(1, "Movie ID cannot be empty"))
+      .min(1, "At least one movie ID is required"),
   }),
 });
 
@@ -195,6 +184,5 @@ module.exports = {
   createMovieSchema,
   updateMovieSchema,
   filterMoviesSchema,
-  searchMoviesSchema,
-  PAGINATION_LIMITS,
+  bulkDeleteMoviesSchema,
 };
