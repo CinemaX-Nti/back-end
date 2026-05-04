@@ -27,10 +27,20 @@ const createMovieSchema = z.object({
       .positive(),
     genre: z
       .array(
-        z.string().trim().min(1, "Genre name cannot be empty").toLowerCase(),
+        z
+          .string()
+          .trim()
+          .min(1, "Genre name cannot be empty")
+          .transform((val) => {
+            return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+          })
+          .refine((val) => GENRES.includes(val), {
+            message: "Invalid genre",
+          }),
       )
       .min(1, "At least one genre is required")
       .max(10, "Maximum 10 genres allowed"),
+
     language: z.string().trim().min(1).optional(),
     releaseDate: z.coerce.date().optional(),
     trailerUrl: z

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { GENRES } = require("../utils/movieHelpers");
 
 // Movie schema - handles all film data in the cinema system
 const movieSchema = new mongoose.Schema(
@@ -12,7 +13,11 @@ const movieSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+<<<<<<< badr-back-end
       lowercase: true,
+=======
+      unique: true,
+>>>>>>> main
     },
     description: {
       type: String,
@@ -27,12 +32,14 @@ const movieSchema = new mongoose.Schema(
     genre: {
       type: [String],
       required: true,
-      validate: {
-        validator: (value) => Array.isArray(value) && value.length > 0,
-        message: "At least one genre is required.",
-      },
+      enum: GENRES,
     },
-    language: String,
+    language: {
+      type: String,
+      minLength: 2,
+      maxLength: 15,
+      trim: true,
+    },
     releaseDate: Date,
     trailerUrl: String,
     posterUrl: {
@@ -59,6 +66,7 @@ const movieSchema = new mongoose.Schema(
   },
 );
 
+<<<<<<< badr-back-end
 // Indexes for common queries - makes filtering way faster
 movieSchema.index({ isDeleted: 1, status: 1 });
 movieSchema.index({ isDeleted: 1, genre: 1 });
@@ -97,5 +105,8 @@ movieSchema.pre("save", async function (next) {
     next(error);
   }
 });
+=======
+movieSchema.index({ title: 1, description: 1 }, { unique: true });
+>>>>>>> main
 
 module.exports = mongoose.model("Movie", movieSchema);
