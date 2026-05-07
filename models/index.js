@@ -4,7 +4,7 @@ const Hall = require('./hall.model');
 const ShowTime = require('./showTime.model');
 const Seat = require('./seat.model');
 const Booking = require('./booking.model');
-const Order = require('./order.model');
+const RestaurantItem = require('./restaurantItem.model');
 
 module.exports = {
   User,
@@ -13,5 +13,5 @@ module.exports = {
   ShowTime,
   Seat,
   Booking,
-  Order,
+  RestaurantItem,
 };

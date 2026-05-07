@@ -34,7 +34,7 @@ Suggested test order
 22. Seed seats
 23. Get seats
 24. Create Booking
-25. Create Order
+25. Create Restaurant Item
 
 
 1. Health Check
@@ -528,38 +528,28 @@ Expected:
 - returns populated bookings
 
 
-30. Create Order
+30. Create Restaurant Item
 ----------------
 Method: POST
-URL: http://localhost:5000/orders
+URL: http://localhost:5000/restaurant/menu
 
 Body:
 {
-  "bookingId": "PUT_BOOKING_ID_HERE",
-  "items": [
-    {
-      "name": "Popcorn",
-      "price": 80,
-      "quantity": 2
-    },
-    {
-      "name": "Cola",
-      "price": 40,
-      "quantity": 1
-    }
-  ],
-  "totalAmount": 200,
-  "paymentStatus": "paid"
+  "name": "Popcorn",
+  "description": "Salted popcorn",
+  "category": "snacks",
+  "price": 80,
+  "isAvailable": true
 }
 
 Expected:
-- returns created order
+- returns created restaurant item
 
 
-31. Get Orders
---------------
+31. Get Restaurant Menu
+-----------------------
 Method: GET
-URL: http://localhost:5000/orders
+URL: http://localhost:5000/restaurant/menu
 
 
 Validation tests for auth

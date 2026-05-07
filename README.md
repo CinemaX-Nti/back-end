@@ -72,12 +72,17 @@ npm start
 - `/halls`
 - `/showtimes`
 - `/bookings`
-- `/orders`
+- `/restaurant`
 
 Seat routes:
 
 - `GET /showtimes/:showTimeId/seats`
 - `POST /showtimes/:showTimeId/seats/seed`
+
+Query support:
+
+- `GET /restaurant/menu?search=popcorn&category=snacks&isAvailable=true&page=1&limit=10&sortBy=price&sortOrder=asc`
+- `GET /bookings?userId=USER_ID&status=confirmed&paymentStatus=pending&page=1&limit=10`
 
 ## Main Models
 
@@ -87,7 +92,7 @@ Seat routes:
 - ShowTime
 - Seat
 - Booking
-- Order
+- RestaurantItem
 
 ## Important Current Notes
 
