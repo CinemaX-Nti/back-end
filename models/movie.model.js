@@ -13,11 +13,7 @@ const movieSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-<<<<<<< badr-back-end
       lowercase: true,
-=======
-      unique: true,
->>>>>>> main
     },
     description: {
       type: String,
@@ -66,7 +62,6 @@ const movieSchema = new mongoose.Schema(
   },
 );
 
-<<<<<<< badr-back-end
 // Indexes for common queries - makes filtering way faster
 movieSchema.index({ isDeleted: 1, status: 1 });
 movieSchema.index({ isDeleted: 1, genre: 1 });
@@ -105,8 +100,8 @@ movieSchema.pre("save", async function (next) {
     next(error);
   }
 });
-=======
-movieSchema.index({ title: 1, description: 1 }, { unique: true });
->>>>>>> main
+// =======
+// movieSchema.index({ title: 1, description: 1 }, { unique: true });
+// >>>>>>> main
 
 module.exports = mongoose.model("Movie", movieSchema);

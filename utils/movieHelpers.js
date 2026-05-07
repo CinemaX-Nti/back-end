@@ -118,5 +118,5 @@ module.exports = {
   formatPaginatedResponse,
   isValidObjectId,
   buildMovieFilter,
-  GENRES,
+  // GENRES,
 };

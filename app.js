@@ -2,12 +2,18 @@ const express = require("express");
 const apiRoutes = require("./routes");
 
 const app = express();
-require("dotenv").config();
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.status(200).json({
     message: "Cinema Booking API is running",
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is healthy",
   });
 });
 
