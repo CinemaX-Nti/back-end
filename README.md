@@ -101,7 +101,7 @@ Query support:
 - Booking logic still needs full seat validation and seat status updates
 - Authentication and role-based authorization are implemented for user profile/admin flows
 - Hall module now supports full CRUD + zod validation + admin protection on write operations
-- Halls overview endpoint is available at `GET /halls/overview`
+- Paginated hall listing is available at `GET /halls?page=1&limit=10&sortBy=createdAt&sortOrder=desc`
 
 ## Team Documentation
 

@@ -1,5 +1,21 @@
 const mongoose = require("mongoose");
 
+const seatLayoutGroupSchema = new mongoose.Schema(
+  {
+    rows: {
+      type: [String],
+      required: true,
+      default: [],
+    },
+    type: {
+      type: String,
+      enum: ["standard", "premium", "vip"],
+      required: true,
+    },
+  },
+  { _id: false },
+);
+
 const hallSchema = new mongoose.Schema(
   {
     name: {
@@ -18,20 +34,12 @@ const hallSchema = new mongoose.Schema(
       min: 1,
     },
     seatLayout: [
-      {
-        row: {
-          type: String, // A, B, C...
-          required: true,
-          uppercase: true,
-          trim: true,
-        },
-        type: {
-          type: String,
-          enum: ["standard", "premium", "vip"],
-          required: true,
-        },
-      },
+      seatLayoutGroupSchema,
     ],
+    availability: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   {
@@ -40,14 +48,5 @@ const hallSchema = new mongoose.Schema(
 );
 
 hallSchema.index({ name: 1 }, { unique: true });
-
-hallSchema.path('seatLayout').validate(function validateSeatLayout(value) {
-  if (!Array.isArray(value)) {
-    return false;
-  }
-
-  const uniqueRows = new Set(value.map((seatConfig) => seatConfig.row));
-  return uniqueRows.size === value.length;
-}, 'Each row can only appear once in seatLayout.');
 
 module.exports = mongoose.model("Hall", hallSchema);

@@ -29,22 +29,23 @@ const buildSeatNumbers = (rows, cols) => {
 
 const buildSeatTypeMap = (seatLayout) =>
   new Map(
-    (seatLayout || []).map((seatConfig) => [
-      seatConfig.row.toUpperCase(),
-      seatConfig.type,
-    ]),
+    (seatLayout || []).flatMap((seatConfig) =>
+      (seatConfig.rows || [seatConfig.row]).map((row) => [
+        row.toUpperCase(),
+        seatConfig.type,
+      ]),
+    ),
   );
 
 const seedSeatsForShowTime = async (showTimeId) => {
   const showTime = await ShowTime.findById(showTimeId).lean();
-  console.log(showTime);
+  // console.log(showTime);
 
   if (!showTime) {
     throw new Error("ShowTime not found.");
   }
 
   const hall = await Hall.findById(showTime.hallId).lean();
-  console.log(hall);
 
   if (!hall) {
     throw new Error("Hall not found for this showtime.");

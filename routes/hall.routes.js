@@ -2,7 +2,6 @@ const express = require("express");
 const {
   createHall,
   getHalls,
-  getHallsOverview,
   getHallById,
   updateHall,
   deleteHall,
@@ -19,14 +18,17 @@ const router = express.Router();
 
 router
   .route("/")
-  .post(auth, isAdmin, validation(createHallSchema), createHall)
-  .get(getHalls);
-
-router.get("/overview", getHallsOverview);
+  .post(
+    auth,
+    isAdmin,
+    validation(createHallSchema),
+    createHall,
+  )
+  .get(auth, getHalls);
 
 router
   .route("/:id")
-  .get(validation(hallParamsSchema), getHallById)
+  .get(auth, validation(hallParamsSchema), getHallById)
   .patch(auth, isAdmin, validation(updateHallSchema), updateHall)
   .delete(auth, isAdmin, validation(hallParamsSchema), deleteHall);
 

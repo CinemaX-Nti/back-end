@@ -10,13 +10,6 @@ app.get("/", (req, res) => {
   });
 });
 
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Server is healthy",
-  });
-});
-
 app.use("/", apiRoutes);
 
 // Handles unknown routes in one place.

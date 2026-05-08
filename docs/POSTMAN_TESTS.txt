@@ -28,7 +28,7 @@ Suggested test order
 16. Get Halls
 17. Get Hall By ID
 18. Update Hall (admin)
-19. Halls overview
+19. Get Halls With Pagination
 20. Create Movie
 21. Create ShowTime
 22. Seed seats
@@ -338,16 +338,15 @@ Body:
   "rows": 5,
   "cols": 6,
   "seatLayout": [
-    { "row": "A", "type": "standard" },
-    { "row": "B", "type": "standard" },
-    { "row": "C", "type": "premium" },
-    { "row": "D", "type": "premium" },
-    { "row": "E", "type": "vip" }
-  ]
+    { "rows": ["C", "D"], "type": "premium" },
+    { "rows": ["E"], "type": "vip" }
+  ],
+  "availability": true
 }
 
 Expected:
 - returns created hall
+- any row not listed in `seatLayout` becomes `standard`
 
 Save:
 - hall id as `HALL_ID`
@@ -357,6 +356,20 @@ Save:
 -------------
 Method: GET
 URL: http://localhost:5000/halls
+
+Headers:
+Authorization: Bearer <USER_TOKEN_OR_ADMIN_TOKEN>
+
+Optional query:
+- `?page=1`
+- `?limit=10`
+- `?sortBy=createdAt` (default)
+- `?sortOrder=desc` (default)
+
+Expected:
+- returns paginated halls in `data`
+- returns `pagination`
+- returns `sorting`
 
 18. Get Hall By ID
 ------------------
@@ -393,23 +406,6 @@ Authorization: Bearer <ADMIN_TOKEN>
 
 Expected:
 - returns success message
-
-21. Halls Overview
-------------------
-Method: GET
-URL: http://localhost:5000/halls/overview
-
-Optional query:
-- `?view=upcoming` (default)
-- `?view=current`
-- `?view=all`
-
-Expected:
-- returns halls with:
-  - total seats
-  - current movie summary
-  - showtimes with movie and available seats
-
 
 22. Create Movie
 ---------------
