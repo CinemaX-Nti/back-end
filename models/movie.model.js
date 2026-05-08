@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { GENRES } = require("../utils/movieHelpers");
+const { GENRES, normalizeGenre } = require("../utils/movieHelpers");
 
 // Movie schema - handles all film data in the cinema system
 const movieSchema = new mongoose.Schema(
@@ -29,6 +29,8 @@ const movieSchema = new mongoose.Schema(
       type: [String],
       required: true,
       enum: GENRES,
+      set: (genres) =>
+        Array.isArray(genres) ? genres.map((genre) => normalizeGenre(genre)) : genres,
     },
     language: {
       type: String,

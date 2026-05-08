@@ -1,11 +1,14 @@
 const { z } = require("zod");
+const { GENRES, PAGINATION_LIMITS, normalizeGenre } = require("../utils/movieHelpers");
 
-// These match the limits in movieHelpers.js
-const PAGINATION_LIMITS = {
-  MIN_LIMIT: 1,
-  MAX_LIMIT: 100,
-  DEFAULT_LIMIT: 10,
-};
+const genreItemSchema = z
+  .string()
+  .trim()
+  .min(1, "Genre name cannot be empty")
+  .transform(normalizeGenre)
+  .refine((val) => GENRES.includes(val), {
+    message: "Invalid genre",
+  });
 
 // Validation for creating a new movie
 const createMovieSchema = z.object({
@@ -26,18 +29,7 @@ const createMovieSchema = z.object({
       .max(720, "Duration must not exceed 720 minutes (12 hours)")
       .positive(),
     genre: z
-      .array(
-        z
-          .string()
-          .trim()
-          .min(1, "Genre name cannot be empty")
-          .transform((val) => {
-            return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
-          })
-          .refine((val) => GENRES.includes(val), {
-            message: "Invalid genre",
-          }),
-      )
+      .array(genreItemSchema)
       .min(1, "At least one genre is required")
       .max(10, "Maximum 10 genres allowed"),
 
@@ -81,9 +73,7 @@ const updateMovieSchema = z.object({
         .positive()
         .optional(),
       genre: z
-        .array(
-          z.string().trim().min(1, "Genre name cannot be empty").toLowerCase(),
-        )
+        .array(genreItemSchema)
         .min(1, "At least one genre is required")
         .max(10, "Maximum 10 genres allowed")
         .optional(),
@@ -109,7 +99,7 @@ const updateMovieSchema = z.object({
 const filterMoviesSchema = z.object({
   query: z
     .object({
-      genre: z.string().trim().optional(),
+      genre: genreItemSchema.optional(),
       status: z.enum(["now_showing", "coming_soon", "archived"]).optional(),
       language: z.string().trim().optional(),
       minRating: z.coerce

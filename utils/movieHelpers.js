@@ -1,11 +1,36 @@
 const mongoose = require("mongoose");
 
+const GENRES = [
+  "action",
+  "adventure",
+  "animation",
+  "biography",
+  "comedy",
+  "crime",
+  "documentary",
+  "drama",
+  "family",
+  "fantasy",
+  "history",
+  "horror",
+  "music",
+  "mystery",
+  "romance",
+  "sci-fi",
+  "sport",
+  "thriller",
+  "war",
+  "western",
+];
+
 // Pagination limits - used across the movie module
 const PAGINATION_LIMITS = {
   MIN_LIMIT: 1,
   MAX_LIMIT: 100,
   DEFAULT_LIMIT: 10,
 };
+
+const normalizeGenre = (genre) => genre.trim().toLowerCase();
 
 // Parse and validate pagination params from query string
 // Returns { skip, limit, page } ready for mongoose queries
@@ -56,7 +81,7 @@ const buildMovieFilter = ({
   const filter = { isDeleted: false };
 
   if (genre) {
-    filter.genre = genre.toLowerCase().trim();
+    filter.genre = normalizeGenre(genre);
   }
 
   if (status && ["now_showing", "coming_soon", "archived"].includes(status)) {
@@ -113,10 +138,11 @@ const buildMovieFilter = ({
 };
 
 module.exports = {
+  GENRES,
   PAGINATION_LIMITS,
   getPaginationParams,
   formatPaginatedResponse,
   isValidObjectId,
   buildMovieFilter,
-  // GENRES,
+  normalizeGenre,
 };
