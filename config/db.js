@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 
 const connectDB = async () => {
-  const mongoURL = process.env.MONGO_URL;
+  const mongoURL = process.env.MONGO_URI || process.env.MONGO_URL;
 
   if (!mongoURL) {
     throw new Error(
-      "MongoDB connection string is missing. Set MONGO_URL or MONGO_URI in .env.",
+      "MongoDB connection string is missing. Set MONGO_URI or MONGO_URL in .env.",
     );
   }
 
