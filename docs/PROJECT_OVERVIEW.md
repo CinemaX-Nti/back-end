@@ -3,7 +3,7 @@
 ## Purpose
 
 This project is a backend system for managing a cinema booking platform.
-It allows users to browse movies, check available showtimes, select seats, create bookings, and attach food orders to those bookings.
+It allows users to browse movies, check available showtimes, select seats, create bookings, and include food selections inside those bookings.
 
 The current project is built with:
 
@@ -26,12 +26,12 @@ The current project is built with:
 - `Hall`: cinema hall layout
 - `ShowTime`: movie schedule in a specific hall
 - `Seat`: seats generated per showtime
-- `Booking`: selected seats linked to a user
-- `Order`: food items linked to a booking
+- `Booking`: selected seats, show details, payment status, and food items linked to a user
+- `RestaurantItem`: cinema menu items selected during booking
 
 ## Business Rule Highlights
 
 - Seats are not shared between showtimes
 - Each showtime creates its own seat map based on hall rows and columns
 - Bookings should eventually lock and update seat status
-- Orders belong to bookings, not directly to users
+- Food items are stored as snapshots inside bookings after checkout

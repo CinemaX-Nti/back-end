@@ -88,17 +88,19 @@ Current state:
 - booking document creation exists
 - seat validation and seat locking still need implementation
 
-### 6. Add Food Order
+### 6. Select Food Items
 
 When it happens:
 
-- after booking is created or during checkout
+- during checkout before booking is submitted
 
 What should happen:
 
-- backend creates an order linked to the booking
-- each item includes name, price, and quantity
-- backend returns order details
+- frontend requests the cinema menu from the restaurant route
+- user selects menu items and quantities
+- frontend sends selected `itemId` values with quantities in the booking request
+- backend resolves the real item names and prices from the menu
+- backend stores the selected food items directly inside the booking
 
 ### 7. Booking Cancellation
 

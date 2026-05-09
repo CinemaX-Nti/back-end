@@ -1,40 +1,39 @@
 const mongoose = require("mongoose");
 
 const GENRES = [
-  "Action",
-  "Comedy",
-  "Drama",
-  "Horror",
-  "Sci-Fi",
-  "Romance",
-  "Thriller",
-  "Animation",
-  "Documentary",
+  "action",
+  "adventure",
+  "animation",
+  "biography",
+  "comedy",
+  "crime",
+  "documentary",
+  "drama",
+  "family",
+  "fantasy",
+  "history",
+  "horror",
+  "music",
+  "mystery",
+  "romance",
+  "sci-fi",
+  "sport",
+  "thriller",
+  "war",
+  "western",
 ];
 
-// Pagination constants
+// Pagination limits - used across the movie module
 const PAGINATION_LIMITS = {
   MIN_LIMIT: 1,
   MAX_LIMIT: 100,
   DEFAULT_LIMIT: 10,
 };
 
-/**
- * Helper function to check if user is authorized to modify a resource
- * @param {Object} createdBy - The creator's ID from the resource
- * @param {Object} userId - The current user's ID
- * @param {String} userRole - The current user's role
- * @returns {Boolean} true if authorized, false otherwise
- */
-const isAuthorizedToModify = (createdBy, userId, userRole) => {
-  return createdBy.toString() === userId.toString() || userRole === "admin";
-};
+const normalizeGenre = (genre) => genre.trim().toLowerCase();
 
-/**
- * Helper function to validate and parse pagination parameters
- * @param {Object} query - Request query object
- * @returns {Object} {skip, limit, page}
- */
+// Parse and validate pagination params from query string
+// Returns { skip, limit, page } ready for mongoose queries
 const getPaginationParams = (query) => {
   const page = Math.max(1, parseInt(query.page) || 1);
   const limit = Math.min(
@@ -48,14 +47,8 @@ const getPaginationParams = (query) => {
   return { skip, limit, page };
 };
 
-/**
- * Helper function to format pagination response
- * @param {Array} data - The data to return
- * @param {Number} total - Total count of documents
- * @param {Number} page - Current page
- * @param {Number} limit - Items per page
- * @returns {Object} Formatted pagination object
- */
+// Format response for paginated endpoints
+// Keeps response structure consistent across the API
 const formatPaginatedResponse = (data, total, page, limit) => {
   return {
     success: true,
@@ -69,20 +62,13 @@ const formatPaginatedResponse = (data, total, page, limit) => {
   };
 };
 
-/**
- * Helper function to validate MongoDB ObjectId
- * @param {String} id - The ID to validate
- * @returns {Boolean} true if valid, false otherwise
- */
+// Quick check if a string is a valid MongoDB ObjectId
 const isValidObjectId = (id) => {
   return mongoose.isValidObjectId(id);
 };
 
-/**
- * Helper function to build filter object with common validations
- * @param {Object} filterParams - Filter parameters
- * @returns {Object} Validated filter object
- */
+// Build a mongoose filter object from query params
+// Handles genre, status, language, rating range, and duration range
 const buildMovieFilter = ({
   genre,
   status,
@@ -95,7 +81,7 @@ const buildMovieFilter = ({
   const filter = { isDeleted: false };
 
   if (genre) {
-    filter.genre = genre;
+    filter.genre = normalizeGenre(genre);
   }
 
   if (status && ["now_showing", "coming_soon", "archived"].includes(status)) {
@@ -103,10 +89,10 @@ const buildMovieFilter = ({
   }
 
   if (language) {
-    filter.language = language;
+    filter.language = language.trim();
   }
 
-  // Rating filter
+  // Rating range filter (0-10)
   if (minRating !== undefined || maxRating !== undefined) {
     filter.rating = {};
     if (minRating !== undefined) {
@@ -121,12 +107,13 @@ const buildMovieFilter = ({
         filter.rating.$lte = max;
       }
     }
+    // Clean up empty rating filter
     if (Object.keys(filter.rating).length === 0) {
       delete filter.rating;
     }
   }
 
-  // Duration filter
+  // Duration range filter (in minutes)
   if (minDuration !== undefined || maxDuration !== undefined) {
     filter.duration = {};
     if (minDuration !== undefined) {
@@ -141,6 +128,7 @@ const buildMovieFilter = ({
         filter.duration.$lte = max;
       }
     }
+    // Clean up empty duration filter
     if (Object.keys(filter.duration).length === 0) {
       delete filter.duration;
     }
@@ -150,11 +138,11 @@ const buildMovieFilter = ({
 };
 
 module.exports = {
+  GENRES,
   PAGINATION_LIMITS,
-  isAuthorizedToModify,
   getPaginationParams,
   formatPaginatedResponse,
   isValidObjectId,
   buildMovieFilter,
-  GENRES,
+  normalizeGenre,
 };

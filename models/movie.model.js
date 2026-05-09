@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
-const { GENRES } = require("../utils/movieHelpers");
+const { GENRES, normalizeGenre } = require("../utils/movieHelpers");
 
+// Movie schema - handles all film data in the cinema system
 const movieSchema = new mongoose.Schema(
   {
     createdBy: {
@@ -12,7 +13,7 @@ const movieSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      unique: true,
+      lowercase: true,
     },
     description: {
       type: String,
@@ -28,6 +29,8 @@ const movieSchema = new mongoose.Schema(
       type: [String],
       required: true,
       enum: GENRES,
+      set: (genres) =>
+        Array.isArray(genres) ? genres.map((genre) => normalizeGenre(genre)) : genres,
     },
     language: {
       type: String,
@@ -55,16 +58,52 @@ const movieSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    bookingCount: {
-      type: Number,
-      default: 0,
-    },
   },
   {
     timestamps: true,
   },
 );
 
-movieSchema.index({ title: 1, description: 1 }, { unique: true });
+// Indexes for common queries - makes filtering way faster
+movieSchema.index({ isDeleted: 1, status: 1 });
+movieSchema.index({ isDeleted: 1, genre: 1 });
+movieSchema.index({ isDeleted: 1, title: "text", description: "text" });
+movieSchema.index({ isDeleted: 1, rating: -1 });
+movieSchema.index({ createdBy: 1, isDeleted: 1 });
+
+// Check for duplicate titles before saving (case-insensitive)
+// We do this manually instead of unique: true because we need to handle soft deletes
+movieSchema.pre("save", async function (next) {
+  try {
+    // Normalize and trim the title
+    this.title = this.title.trim();
+
+    // Build query to find existing movie with same title
+    const query = {
+      title: this.title,
+      isDeleted: false,
+    };
+
+    // If updating, exclude current doc from check
+    if (this._id) {
+      query._id = { $ne: this._id };
+    }
+
+    const existingMovie = await mongoose.model("Movie").findOne(query);
+
+    if (existingMovie) {
+      const error = new Error("Movie title already exists");
+      error.code = 11000;
+      throw error;
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+// =======
+// movieSchema.index({ title: 1, description: 1 }, { unique: true });
+// >>>>>>> main
 
 module.exports = mongoose.model("Movie", movieSchema);

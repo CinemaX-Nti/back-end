@@ -1,5 +1,38 @@
 const mongoose = require('mongoose');
 
+const bookingFoodItemSchema = new mongoose.Schema(
+  {
+    itemId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'RestaurantItem',
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    subtotal: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
 const bookingSchema = new mongoose.Schema(
   {
     userId: {
@@ -14,6 +47,23 @@ const bookingSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    hallId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Hall',
+      required: true,
+      index: true,
+    },
+    movieId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Movie',
+      required: true,
+      index: true,
+    },
+    filmName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     seats: {
       type: [String],
       required: true,
@@ -21,6 +71,20 @@ const bookingSchema = new mongoose.Schema(
         validator: (value) => Array.isArray(value) && value.length > 0,
         message: 'At least one seat must be selected.',
       },
+    },
+    foodItems: {
+      type: [bookingFoodItemSchema],
+      default: [],
+    },
+    ticketTotal: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    foodTotal: {
+      type: Number,
+      min: 0,
+      default: 0,
     },
     status: {
       type: String,
@@ -31,6 +95,11 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       min: 0,
       default: 0,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'paid', 'failed', 'refunded'],
+      default: 'pending',
     },
   },
   {

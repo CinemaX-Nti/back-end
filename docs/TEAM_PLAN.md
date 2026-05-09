@@ -54,7 +54,7 @@ Suggested files:
 - `routes/showTime.routes.js`
 - `utils/seedSeats.js`
 
-### 4. Bookings and Orders
+### 4. Bookings and Restaurant Menu
 
 Responsible for:
 
@@ -62,16 +62,16 @@ Responsible for:
 - validating selected seats
 - preventing double booking
 - updating seat status
-- attaching food orders to bookings
+- attaching restaurant items to bookings
 
 Suggested files:
 
 - `models/booking.model.js`
-- `models/order.model.js`
+- `models/restaurantItem.model.js`
 - `controllers/booking.controller.js`
-- `controllers/order.controller.js`
+- `controllers/restaurant.controller.js`
 - `routes/booking.routes.js`
-- `routes/order.routes.js`
+- `routes/restaurant.routes.js`
 
 ### 5. Quality and DevOps
 
@@ -96,7 +96,7 @@ Suggested areas:
 - Whether seat reservation needs timeout logic
 - Whether booking and seat updates should use MongoDB transactions
 - How admins will create movies, halls, and showtimes
-- Whether food orders can be edited after booking
+- Whether food selections can be edited after booking
 - What status flow seats should follow: `available -> reserved -> booked`
 - Whether online payment will be added later
 - What happens when a booking is cancelled
@@ -111,5 +111,5 @@ Suggested areas:
 2. Finish admin CRUD for movie, hall, and showtime
 3. Finish seat generation and seat listing
 4. Finish booking transaction logic
-5. Finish order flow
+5. Finish restaurant menu flow
 6. Add validation, auth middleware, and tests

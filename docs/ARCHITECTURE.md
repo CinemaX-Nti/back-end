@@ -20,7 +20,7 @@ back-end/
 |   |-- booking.controller.js
 |   |-- hall.controller.js
 |   |-- movie.controller.js
-|   |-- order.controller.js
+|   |-- restaurant.controller.js
 |   |-- seat.controller.js
 |   |-- showTime.controller.js
 |   `-- user.controller.js
@@ -34,7 +34,7 @@ back-end/
 |   |-- hall.model.js
 |   |-- index.js
 |   |-- movie.model.js
-|   |-- order.model.js
+|   |-- restaurantItem.model.js
 |   |-- seat.model.js
 |   |-- showTime.model.js
 |   `-- user.model.js
@@ -43,7 +43,7 @@ back-end/
 |   |-- hall.routes.js
 |   |-- index.js
 |   |-- movie.routes.js
-|   |-- order.routes.js
+|   |-- restaurant.routes.js
 |   |-- showTime.routes.js
 |   `-- user.routes.js
 |-- utils/

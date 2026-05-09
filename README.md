@@ -1,5 +1,5 @@
 # Cinema Booking System Backend
-
+first change
 This repository is a team-ready backend starter for a Cinema Booking System using Node.js, Express, MongoDB, and Mongoose.
 
 It already includes:
@@ -47,7 +47,7 @@ Example:
 
 ```env
 PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/cinema_booking_system
+MONGO_URL=mongodb://127.0.0.1:27017/cinema_booking_system
 JWT_SECRET=replace_with_a_secure_secret
 ```
 
@@ -72,12 +72,17 @@ npm start
 - `/halls`
 - `/showtimes`
 - `/bookings`
-- `/orders`
+- `/restaurant`
 
 Seat routes:
 
 - `GET /showtimes/:showTimeId/seats`
 - `POST /showtimes/:showTimeId/seats/seed`
+
+Query support:
+
+- `GET /restaurant/menu?search=popcorn&category=snacks&isAvailable=true&page=1&limit=10&sortBy=price&sortOrder=asc`
+- `GET /bookings?userId=USER_ID&status=confirmed&paymentStatus=pending&page=1&limit=10`
 
 ## Main Models
 
@@ -87,7 +92,7 @@ Seat routes:
 - ShowTime
 - Seat
 - Booking
-- Order
+- RestaurantItem
 
 ## Important Current Notes
 
@@ -96,7 +101,7 @@ Seat routes:
 - Booking logic still needs full seat validation and seat status updates
 - Authentication and role-based authorization are implemented for user profile/admin flows
 - Hall module now supports full CRUD + zod validation + admin protection on write operations
-- Halls overview endpoint is available at `GET /halls/overview`
+- Paginated hall listing is available at `GET /halls?page=1&limit=10&sortBy=createdAt&sortOrder=desc`
 
 ## Team Documentation
 

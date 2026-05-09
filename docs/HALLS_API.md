@@ -7,7 +7,7 @@ The `halls` module now supports:
 - Full CRUD operations
 - Request validation using `zod`
 - Auth and role protection for admin actions
-- Hall overview endpoint that links halls with showtimes, movies, and seat counts
+- Paginated hall listing with default sorting
 
 ## Endpoints
 
@@ -26,20 +26,54 @@ Body example:
   "rows": 5,
   "cols": 6,
   "seatLayout": [
-    { "row": "A", "type": "standard" },
-    { "row": "B", "type": "standard" },
-    { "row": "C", "type": "premium" },
-    { "row": "D", "type": "premium" },
-    { "row": "E", "type": "vip" }
-  ]
+    { "rows": ["C", "D"], "type": "premium" },
+    { "rows": ["E"], "type": "vip" }
+  ],
+  "availability": true
 }
+```
+
+Notes:
+
+- `seatLayout` now supports grouped row assignment
+- Any row not listed in `seatLayout` defaults to `standard`
+- Backward-compatible flat format is still accepted:
+
+```json
+[
+  { "row": "A", "type": "standard" },
+  { "row": "B", "type": "standard" },
+  { "row": "C", "type": "premium" }
+]
 ```
 
 ### 2) Get All Halls
 
 - Method: `GET`
 - URL: `/halls`
-- Protection: public
+- Protection: `auth`
+
+Query params:
+
+- `page` (default: `1`)
+- `limit` (default: `10`, max: `100`)
+- `sortBy` (default: `createdAt`)
+  - allowed: `createdAt`, `updatedAt`, `name`, `rows`, `cols`
+- `sortOrder` (default: `desc`)
+  - allowed: `asc`, `desc`
+
+This endpoint returns:
+
+- paginated hall data
+- pagination metadata
+- sorting metadata
+
+Example:
+
+- `/halls`
+- `/halls?page=2&limit=5`
+- `/halls?sortBy=name&sortOrder=asc`
+- `/halls?page=1&limit=10&sortBy=createdAt&sortOrder=desc`
 
 ### 3) Get Hall By ID
 
@@ -66,34 +100,6 @@ Notes:
 - URL: `/halls/:id`
 - Protection: `auth + isAdmin`
 - Validation: `hallParamsSchema`
-
-### 6) Halls Overview (Hall + Movie + Seats)
-
-- Method: `GET`
-- URL: `/halls/overview`
-- Protection: public
-
-This endpoint returns:
-
-- Hall data
-- `totalSeats` per hall (`rows * cols`)
-- `currentMovie` (first showtime movie in the selected view)
-- `showTimes` with movie details and `availableSeats`
-
-## Overview Query Options
-
-The overview endpoint supports query param `view`:
-
-- `upcoming` (default): upcoming scheduled showtimes only
-- `current`: currently running showtimes only
-- `all`: all showtimes
-
-Examples:
-
-- `/halls/overview`
-- `/halls/overview?view=upcoming`
-- `/halls/overview?view=current`
-- `/halls/overview?view=all`
 
 ## Validation Schemas Added
 

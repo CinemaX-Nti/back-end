@@ -1,14 +1,16 @@
 const { z } = require("zod");
+const { GENRES, PAGINATION_LIMITS, normalizeGenre } = require("../utils/movieHelpers");
 
-const { GENRES } = require("../utils/movieHelpers");
+const genreItemSchema = z
+  .string()
+  .trim()
+  .min(1, "Genre name cannot be empty")
+  .transform(normalizeGenre)
+  .refine((val) => GENRES.includes(val), {
+    message: "Invalid genre",
+  });
 
-// Pagination limits
-const PAGINATION_LIMITS = {
-  MIN_LIMIT: 1,
-  MAX_LIMIT: 100,
-  DEFAULT_LIMIT: 10,
-};
-
+// Validation for creating a new movie
 const createMovieSchema = z.object({
   body: z.object({
     title: z
@@ -27,18 +29,7 @@ const createMovieSchema = z.object({
       .max(720, "Duration must not exceed 720 minutes (12 hours)")
       .positive(),
     genre: z
-      .array(
-        z
-          .string()
-          .trim()
-          .min(1, "Genre name cannot be empty")
-          .transform((val) => {
-            return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
-          })
-          .refine((val) => GENRES.includes(val), {
-            message: "Invalid genre",
-          }),
-      )
+      .array(genreItemSchema)
       .min(1, "At least one genre is required")
       .max(10, "Maximum 10 genres allowed"),
 
@@ -59,6 +50,7 @@ const createMovieSchema = z.object({
   }),
 });
 
+// Validation for updating a movie - all fields optional, rejects unknown fields
 const updateMovieSchema = z.object({
   body: z
     .object({
@@ -81,9 +73,7 @@ const updateMovieSchema = z.object({
         .positive()
         .optional(),
       genre: z
-        .array(
-          z.string().trim().min(1, "Genre name cannot be empty").toLowerCase(),
-        )
+        .array(genreItemSchema)
         .min(1, "At least one genre is required")
         .max(10, "Maximum 10 genres allowed")
         .optional(),
@@ -105,10 +95,11 @@ const updateMovieSchema = z.object({
     .strict("No unknown fields allowed"),
 });
 
+// Validation for filtering movies - includes rating/duration range checks
 const filterMoviesSchema = z.object({
   query: z
     .object({
-      genre: z.string().trim().optional(),
+      genre: genreItemSchema.optional(),
       status: z.enum(["now_showing", "coming_soon", "archived"]).optional(),
       language: z.string().trim().optional(),
       minRating: z.coerce
@@ -170,24 +161,12 @@ const filterMoviesSchema = z.object({
     ),
 });
 
-const searchMoviesSchema = z.object({
-  query: z.object({
-    search: z
-      .string()
-      .trim()
-      .min(1, "Search query required")
-      .max(200, "Search query must not exceed 200 characters"),
-    page: z.coerce.number().int().positive().default(1).optional(),
-    limit: z.coerce
-      .number()
-      .int()
-      .min(PAGINATION_LIMITS.MIN_LIMIT, "Limit must be at least 1")
-      .max(
-        PAGINATION_LIMITS.MAX_LIMIT,
-        `Limit must not exceed ${PAGINATION_LIMITS.MAX_LIMIT}`,
-      )
-      .default(PAGINATION_LIMITS.DEFAULT_LIMIT)
-      .optional(),
+// Validation for bulk delete request body
+const bulkDeleteMoviesSchema = z.object({
+  body: z.object({
+    movieIds: z
+      .array(z.string().min(1, "Movie ID cannot be empty"))
+      .min(1, "At least one movie ID is required"),
   }),
 });
 
@@ -195,6 +174,5 @@ module.exports = {
   createMovieSchema,
   updateMovieSchema,
   filterMoviesSchema,
-  searchMoviesSchema,
-  PAGINATION_LIMITS,
+  bulkDeleteMoviesSchema,
 };
