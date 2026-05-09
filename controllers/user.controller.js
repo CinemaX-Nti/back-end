@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const { OAuth2Client } = require("google-auth-library");
 const { User } = require("../models");
+const { getRedisClient } = require("../config/redis");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const SALT_ROUNDS = 8;
@@ -35,14 +36,41 @@ const generateOtp = () => {
   return String(Math.floor(min + Math.random() * (max - min + 1)));
 };
 
-const storePasswordResetOtp = async (user) => {
+const getPasswordResetOtpKey = (email) => `password-reset-otp:${email}`;
+
+const storePasswordResetOtpInRedis = async (email) => {
   const otp = generateOtp();
-  user.passwordResetOtp = {
-    code: await bcrypt.hash(otp, SALT_ROUNDS),
-    expiresAt: new Date(Date.now() + OTP_TTL_MS),
-  };
-  await user.save();
+  const redis = getRedisClient();
+  const hashedOtp = await bcrypt.hash(otp, SALT_ROUNDS);
+
+  await redis.set(getPasswordResetOtpKey(email), hashedOtp, {
+    PX: OTP_TTL_MS,
+  });
+
   return otp;
+};
+
+const hasActivePasswordResetOtp = async (email) => {
+  const redis = getRedisClient();
+  const ttl = await redis.pTTL(getPasswordResetOtpKey(email));
+
+  return ttl > 0;
+};
+
+const validatePasswordResetOtp = async (email, otp) => {
+  const redis = getRedisClient();
+  const hashedOtp = await redis.get(getPasswordResetOtpKey(email));
+
+  if (!hashedOtp) {
+    return false;
+  }
+
+  return bcrypt.compare(otp, hashedOtp);
+};
+
+const clearPasswordResetOtpFromRedis = async (email) => {
+  const redis = getRedisClient();
+  await redis.del(getPasswordResetOtpKey(email));
 };
 
 const hasActiveOtp = (otpState) => {
@@ -60,13 +88,6 @@ const validateOtp = async (otp, otpState) => {
   }
 
   return bcrypt.compare(otp, otpState.code);
-};
-
-const clearPasswordResetOtp = (user) => {
-  user.passwordResetOtp = {
-    code: undefined,
-    expiresAt: undefined,
-  };
 };
 
 const storeOtpForField = async (user, fieldName) => {
@@ -472,7 +493,7 @@ const forgetPassword = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (user && isPasswordManagedProvider(user) && user.confirmed) {
-      const otp = await storePasswordResetOtp(user);
+      const otp = await storePasswordResetOtpInRedis(user.email);
       await sendOtpEmail({
         to: user.email,
         subject: "Reset your password",
@@ -494,15 +515,15 @@ const forgetPassword = async (req, res, next) => {
 const resendPasswordResetOtp = async (req, res, next) => {
   try {
     const email = normalizeEmail(req.body.email);
-    const user = await User.findOne({ email }).select("+passwordResetOtp.code");
+    const user = await User.findOne({ email });
 
     if (
       user &&
       isPasswordManagedProvider(user) &&
       user.confirmed &&
-      hasActiveOtp(user.passwordResetOtp)
+      (await hasActivePasswordResetOtp(user.email))
     ) {
-      const otp = await storePasswordResetOtp(user);
+      const otp = await storePasswordResetOtpInRedis(user.email);
       await sendOtpEmail({
         to: user.email,
         subject: "Reset your password",
@@ -526,9 +547,7 @@ const resetPassword = async (req, res, next) => {
     const { otp, newPassword } = req.body;
     const email = normalizeEmail(req.body.email);
 
-    const user = await User.findOne({ email }).select(
-      "+password +passwordResetOtp.code",
-    );
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -540,7 +559,7 @@ const resetPassword = async (req, res, next) => {
       });
     }
 
-    const isValidOtp = await validateOtp(otp, user.passwordResetOtp);
+    const isValidOtp = await validatePasswordResetOtp(user.email, otp);
 
     if (!isValidOtp) {
       return res.status(401).json({ message: "Invalid or expired OTP" });
@@ -548,7 +567,7 @@ const resetPassword = async (req, res, next) => {
 
     user.password = await bcrypt.hash(newPassword, SALT_ROUNDS);
     user.changeCredentialTime = new Date();
-    clearPasswordResetOtp(user);
+    await clearPasswordResetOtpFromRedis(user.email);
     await user.save();
 
     return res.status(200).json({
