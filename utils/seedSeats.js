@@ -37,21 +37,23 @@ const buildSeatTypeMap = (seatLayout) =>
     ),
   );
 
-const seedSeatsForShowTime = async (showTimeId) => {
-  const showTime = await ShowTime.findById(showTimeId).lean();
-  // console.log(showTime);
+const seedSeatsForShowTime = async (showTimeId, options = {}) => {
+  const { session } = options;
+  const showTime = await ShowTime.findById(showTimeId).session(session).lean();
 
   if (!showTime) {
     throw new Error("ShowTime not found.");
   }
 
-  const hall = await Hall.findById(showTime.hallId).lean();
+  const hall = await Hall.findById(showTime.hallId).session(session).lean();
 
   if (!hall) {
     throw new Error("Hall not found for this showtime.");
   }
 
-  const existingSeatsCount = await Seat.countDocuments({ showTimeId });
+  const existingSeatsCount = await Seat.countDocuments({ showTimeId }).session(
+    session,
+  );
 
   if (existingSeatsCount > 0) {
     throw new Error("Seats already exist for this showtime.");
@@ -71,11 +73,15 @@ const seedSeatsForShowTime = async (showTimeId) => {
       ],
   }));
 
-  const createdSeats = await Seat.insertMany(seatDocuments);
+  const createdSeats = await Seat.insertMany(seatDocuments, { session });
 
-  await ShowTime.findByIdAndUpdate(showTimeId, {
-    availableSeats: createdSeats.length,
-  });
+  await ShowTime.findByIdAndUpdate(
+    showTimeId,
+    {
+      availableSeats: createdSeats.length,
+    },
+    { session },
+  );
 
   return createdSeats;
 };

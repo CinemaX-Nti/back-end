@@ -1,0 +1,88 @@
+HALL POSTMAN TESTS
+==================
+
+16. Create Hall
+---------------
+Method: POST
+URL: http://localhost:5000/halls
+
+Headers:
+Authorization: Bearer <ADMIN_TOKEN>
+
+Body:
+{
+  "name": "Hall 1",
+  "rows": 5,
+  "cols": 6,
+  "seatLayout": [
+    { "rows": ["C", "D"], "type": "premium" },
+    { "rows": ["E"], "type": "vip" }
+  ],
+  "availability": true
+}
+
+Expected:
+- returns created hall
+- any row not listed in `seatLayout` becomes `standard`
+
+Save:
+- hall id as `HALL_ID`
+
+
+17. Get Halls
+-------------
+Method: GET
+URL: http://localhost:5000/halls
+
+Headers:
+Authorization: Bearer <USER_TOKEN_OR_ADMIN_TOKEN>
+
+Optional query:
+- `?page=1`
+- `?limit=10`
+- `?sortBy=createdAt` (default)
+- `?sortOrder=desc` (default)
+
+Expected:
+- returns paginated halls in `data`
+- returns `pagination`
+- returns `sorting`
+
+
+18. Get Hall By ID
+------------------
+Method: GET
+URL: http://localhost:5000/halls/PUT_HALL_ID_HERE
+
+Expected:
+- returns one hall by id
+
+
+19. Update Hall
+---------------
+Method: PATCH
+URL: http://localhost:5000/halls/PUT_HALL_ID_HERE
+
+Headers:
+Authorization: Bearer <ADMIN_TOKEN>
+
+Body (partial update example):
+{
+  "name": "Hall 1 Updated",
+  "cols": 7
+}
+
+Expected:
+- returns updated hall
+
+
+20. Delete Hall
+---------------
+Method: DELETE
+URL: http://localhost:5000/halls/PUT_HALL_ID_HERE
+
+Headers:
+Authorization: Bearer <ADMIN_TOKEN>
+
+Expected:
+- returns success message

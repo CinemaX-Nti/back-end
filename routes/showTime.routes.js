@@ -5,18 +5,8 @@ const { auth, isAdmin } = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
-/**
-  1. admin who will update or delete the show time and he can not update it if some of users booked the show time
-
-
-  2.use zod for the validation
-  
-
- */
-
-router.route('/').post(auth, isAdmin, createShowTime).get(auth, getShowTimes);
-
-router.get('/:showTimeId/seats', auth, getSeatsByShowTime);
-router.post('/:showTimeId/seats/seed', auth, isAdmin, seedSeats);
+router.route('/').post(createShowTime).get(getShowTimes);
+router.get('/:showTimeId/seats', getSeatsByShowTime);
+router.post('/:showTimeId/seats/seed', seedSeats);
 
 module.exports = router;

@@ -1,0 +1,220 @@
+BOOKING POSTMAN TESTS
+=====================
+
+27. Create Booking
+------------------
+Method: POST
+URL: http://localhost:5000/bookings
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Body:
+{
+  "userId": "PUT_USER_ID_HERE",
+  "showTimeId": "PUT_SHOWTIME_ID_HERE",
+  "seats": ["A1", "A2"],
+  "foodItems": [],
+  "paymentReference": "TXN-OPTIONAL-123"
+}
+
+Expected:
+- checks if showtime exists
+- checks if seats exist
+- checks if seats are available
+- locks seats atomically using a MongoDB transaction
+- creates booking with `status: "pending"`
+- creates booking with `paymentStatus: "waiting_transfer"`
+- stores optional `paymentReference` if provided
+- sets `expiresAt` to 15 minutes by default, or the configured hold time
+- returns admin wallet payment details in `paymentInstructions`
+- returns `qrReviewLink`
+- returns `booking.qrCodeDataUrl` and it should not be null
+- the QR link should point to `/api/bookings/confirm-scan/:bookingId`
+- calculates `totalAmount`
+
+Save:
+- booking id as `BOOKING_ID`
+- qr review link as `QR_REVIEW_LINK`
+
+Check after create:
+- call `GET /showtimes/PUT_SHOWTIME_ID_HERE/seats`
+- selected seats should now have `status: "locked"`
+
+Prerequisite:
+- make sure the showtime was created successfully
+- new showtimes auto-create their seats, so you should not need to call the seed endpoint first
+
+
+28. Confirm Scan Via QR Link
+----------------------------
+Method: GET
+URL: http://localhost:5000/api/bookings/confirm-scan/PUT_BOOKING_ID_HERE
+
+Alternative:
+- open the `qrReviewLink` returned from create booking
+- or scan the QR code and access the encoded URL
+
+Expected:
+- marks the booking payment as submitted for admin review
+- updates `paymentStatus` from `waiting_transfer` to `waiting_approval`
+- keeps booking `status` as `pending`
+- returns message: `Payment submitted for review. Please wait for admin confirmation.`
+
+
+29. Get Pending Payments For Admin
+----------------------------------
+Method: GET
+URL: http://localhost:5000/admin/pending-payments
+
+Headers:
+Authorization: Bearer <ADMIN_TOKEN>
+
+Expected:
+- returns bookings with `status: "pending"`
+- returns bookings only with `paymentStatus: "waiting_approval"`
+- before the QR scan endpoint is hit, the booking should not appear here
+- after the QR scan endpoint is hit, the booking should appear as `waiting_approval`
+- includes populated `userId`, `movieId`, `hallId`, and `showTimeId`
+
+
+30. Approve Payment
+-------------------
+Method: PATCH
+URL: http://localhost:5000/admin/approve-payment/PUT_BOOKING_ID_HERE
+
+Headers:
+Authorization: Bearer <ADMIN_TOKEN>
+
+Expected:
+- admin approves a transfer payment
+- works only for bookings in `waiting_approval`
+- updates booking `status` from `pending` to `confirmed`
+- updates booking `paymentStatus` to `paid`
+- sets `confirmedAt`
+- clears `expiresAt`
+- converts selected seats from `locked` to `booked`
+
+Check after approval:
+- call `GET /showtimes/PUT_SHOWTIME_ID_HERE/seats`
+- selected seats should now have `status: "booked"`
+
+
+31. Get Bookings
+----------------
+Method: GET
+URL: http://localhost:5000/bookings
+
+Headers:
+Authorization: Bearer <USER_TOKEN_OR_ADMIN_TOKEN>
+
+Optional query:
+- `?status=pending`
+- `?status=confirmed`
+- `?status=expired`
+- `?paymentStatus=waiting_transfer`
+- `?paymentStatus=waiting_approval`
+- `?paymentStatus=paid`
+- `?paymentStatus=failed`
+
+Expected:
+- returns populated bookings
+- supports pending/confirmed/expired booking filters
+- supports payment status filters for transfer flow
+
+
+Booking flow validation tests
+-----------------------------
+
+Double booking race condition test
+----------------------------------
+Method: POST
+URL: http://localhost:5000/bookings
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Body:
+{
+  "userId": "PUT_USER_ID_HERE",
+  "showTimeId": "PUT_SHOWTIME_ID_HERE",
+  "seats": ["A3", "A4"]
+}
+
+How to test:
+- duplicate this request in Postman tabs or Runner
+- send both requests as close together as possible
+
+Expected:
+- one request should succeed with status 201
+- the other should fail with status 409
+- failure message should indicate the seats were just booked by another user
+
+
+Expired booking hold test
+-------------------------
+Method sequence:
+1. Create a booking for unused seats like `["B1", "B2"]`
+2. Optionally open the QR review link or call the confirm-scan endpoint
+3. Do not approve payment
+4. Wait at least the configured hold time, usually 15 minutes
+5. Call `GET /bookings?status=expired`
+6. Call `GET /showtimes/PUT_SHOWTIME_ID_HERE/seats`
+
+Expected:
+- the booking should move to `status: "expired"`
+- `paymentStatus` should become `failed`
+- the held seats should return to `status: "available"`
+
+Note:
+- the project releases expired holds with a background worker that checks every minute
+- after the full hold time passes, allow up to 1 extra minute for the worker to release the seats
+
+
+Confirm scan for expired booking test
+-------------------------------------
+Method: GET
+URL: http://localhost:5000/api/bookings/confirm-scan/PUT_BOOKING_ID_HERE
+
+Expected:
+- if the hold already expired, returns status 410
+- message should indicate the booking hold has expired
+
+
+Approve expired booking test
+----------------------------
+Method: PATCH
+URL: http://localhost:5000/admin/approve-payment/PUT_BOOKING_ID_HERE
+
+Headers:
+Authorization: Bearer <ADMIN_TOKEN>
+
+Expected:
+- if the hold already expired, returns status 410
+- message should indicate the booking hold has expired
+
+
+Pending payments permissions test
+---------------------------------
+Method: GET
+URL: http://localhost:5000/admin/pending-payments
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Expected:
+- returns status 403
+- message should indicate admins only
+
+
+Approve payment permissions test
+--------------------------------
+Method: PATCH
+URL: http://localhost:5000/admin/approve-payment/PUT_BOOKING_ID_HERE
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Expected:
+- returns status 403
+- message should indicate admins only

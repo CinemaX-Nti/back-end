@@ -11,6 +11,7 @@ const startServer = async () => {
   try {
     await connectDB();
     await connectRedis();
+    startBookingExpiryWorker();
 
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);

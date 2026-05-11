@@ -1,0 +1,103 @@
+MOVIES, SHOWTIMES, AND SEATS POSTMAN TESTS
+==========================================
+
+21. Create Movie
+----------------
+Method: POST
+URL: http://localhost:5000/movies
+
+Body:
+{
+  "createdBy": "PUT_USER_ID_OR_ADMIN_ID_HERE",
+  "title": "Interstellar",
+  "description": "A science fiction movie about space and time.",
+  "duration": 169,
+  "genre": ["Sci-Fi", "Drama"],
+  "language": "English",
+  "releaseDate": "2026-05-01T00:00:00.000Z",
+  "trailerUrl": "https://example.com/trailer",
+  "posterUrl": "https://example.com/poster.jpg",
+  "rating": 8.8,
+  "status": "now_showing"
+}
+
+Expected:
+- returns created movie
+
+Save:
+- movie id as `MOVIE_ID`
+
+
+22. Get Movies
+--------------
+Method: GET
+URL: http://localhost:5000/movies
+
+
+23. Create ShowTime
+-------------------
+Method: POST
+URL: http://localhost:5000/showtimes
+
+Body:
+{
+  "movieId": "PUT_MOVIE_ID_HERE",
+  "hallId": "PUT_HALL_ID_HERE",
+  "startTime": "2026-05-10T18:00:00.000Z",
+  "endTime": "2026-05-10T21:00:00.000Z",
+  "pricing": {
+    "standard": 120,
+    "premium": 180,
+    "vip": 250
+  },
+  "status": "scheduled",
+  "format": "IMAX"
+}
+
+Expected:
+- returns created showtime
+- automatically seeds seats from the selected hall
+- `availableSeats` should equal `rows * cols`
+
+Save:
+- showtime id as `SHOWTIME_ID`
+
+
+24. Get ShowTimes
+-----------------
+Method: GET
+URL: http://localhost:5000/showtimes
+
+
+24. Delete ShowTime
+-------------------
+Method: DELETE
+URL: http://localhost:5000/showtimes/PUT_SHOWTIME_ID_HERE
+
+Expected:
+- deletes the showtime only if there are no confirmed bookings linked to it
+- deletes related seats in the same transaction
+- also removes non-confirmed bookings for that showtime to avoid orphaned records
+
+Error case:
+- if the showtime has confirmed bookings, returns status 409
+
+
+25. Seed Seats For ShowTime
+---------------------------
+Method: POST
+URL: http://localhost:5000/showtimes/PUT_SHOWTIME_ID_HERE/seats/seed
+
+Expected:
+- for a brand new showtime created with the current backend, this will likely fail because seats are already auto-created
+- use this route only for older showtimes that were created before auto-seeding was added
+- if it does run on an old showtime, it creates seats based on the hall layout and returns `totalSeats`
+
+
+26. Get Seats By ShowTime
+-------------------------
+Method: GET
+URL: http://localhost:5000/showtimes/PUT_SHOWTIME_ID_HERE/seats
+
+Expected:
+- returns seats like A1, A2, B1 ...
