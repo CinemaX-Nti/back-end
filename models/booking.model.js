@@ -112,6 +112,11 @@ const bookingSchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    isPaid: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     expiresAt: {
       type: Date,
       index: true,

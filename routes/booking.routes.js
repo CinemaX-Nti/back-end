@@ -1,11 +1,14 @@
 const express = require('express');
-const { createBooking, getBookings } = require('../controllers/booking.controller');
-const { auth, isAdmin } = require('../middleware/auth.middleware');
+const {
+  confirmScan,
+  createBooking,
+  getBookings,
+} = require('../controllers/booking.controller');
+const { auth } = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
-
-
+router.get('/confirm-scan/:bookingId', confirmScan);
 router.route('/').post(auth, createBooking).get(auth, getBookings);
 
 module.exports = router;

@@ -16,6 +16,7 @@ router.use("/showtimes", showTimeRoutes);
 router.use("/bookings", bookingRoutes);
 router.use("/api/bookings", bookingRoutes);
 router.use("/admin", adminRoutes);
+router.use("/api/admin", adminRoutes);
 router.use("/restaurant", restaurantRoutes);
 
 module.exports = router;

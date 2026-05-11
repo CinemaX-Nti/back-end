@@ -2,6 +2,28 @@ const express = require("express");
 const apiRoutes = require("./routes");
 
 const app = express();
+
+const allowedOrigin = process.env.FRONTEND_URL;
+
+app.use((req, res, next) => {
+  if (allowedOrigin) {
+    res.header("Access-Control-Allow-Origin", allowedOrigin);
+    res.header("Vary", "Origin");
+  }
+
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PATCH,PUT,DELETE,OPTIONS",
+  );
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  return next();
+});
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
