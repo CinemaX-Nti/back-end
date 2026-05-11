@@ -1,0 +1,53 @@
+POSTMAN OVERVIEW TESTS
+======================
+
+Base URL
+http://localhost:5000
+
+Note
+- In this project, routes are mounted directly on `/`, not `/api`.
+- Use `Content-Type: application/json` for all POST requests.
+- Protected routes need `Authorization: Bearer <TOKEN>`.
+
+Suggested test order
+1. Health check
+2. Signup
+3. Confirm email
+4. Resend confirmation OTP
+5. Signin
+6. Login with Google
+7. Update password
+8. Forget password
+9. Resend password reset OTP
+10. Reset password
+11. Signin with new password
+12. Request delete profile OTP
+13. Delete profile
+14. Get my profile
+15. Get all users
+16. Create hall
+17. Get halls
+18. Get hall by id
+19. Update hall
+20. Delete hall
+21. Create movie
+22. Get movies
+23. Create showtime
+24. Get showtimes
+25. Seed seats for showtime if needed for older data
+26. Get seats by showtime
+27. Create booking
+28. Confirm booking payment
+29. Get bookings
+30. Create restaurant item
+31. Get restaurant menu
+
+1. Health Check
+---------------
+Method: GET
+URL: http://localhost:5000/
+
+Expected:
+{
+  "message": "Cinema Booking API is running"
+}

@@ -1,0 +1,159 @@
+AUTH VALIDATION POSTMAN TESTS
+=============================
+
+Signup validation error
+-----------------------
+Method: POST
+URL: http://localhost:5000/users/signup
+
+Body:
+{
+  "firstName": "a",
+  "lastName": "b",
+  "email": "wrong-email",
+  "password": "123"
+}
+
+Expected:
+- status 400
+- `message: "Validation error"`
+
+
+Signin validation error
+-----------------------
+Method: POST
+URL: http://localhost:5000/users/signin
+
+Body:
+{
+  "email": "wrong-email",
+  "password": "123"
+}
+
+Expected:
+- status 400
+
+
+Wrong password test
+-------------------
+Method: POST
+URL: http://localhost:5000/users/signin
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "password": "wrongpass"
+}
+
+Expected:
+- status 401
+- `message: "Invalid email or password"`
+
+
+Unauthorized profile test
+-------------------------
+Method: GET
+URL: http://localhost:5000/users/profile
+
+Expected:
+- status 401 if token is missing
+
+
+Forbidden admin test
+--------------------
+Method: GET
+URL: http://localhost:5000/users/
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Expected:
+- status 403
+- `message: "Access denied: Admins only"`
+
+
+Signin before email confirmation
+--------------------------------
+Method: POST
+URL: http://localhost:5000/users/signin
+
+Body:
+{
+  "email": "new-user@example.com",
+  "password": "123456"
+}
+
+Expected:
+- status 403
+- `message: "Please confirm your email before signing in"`
+- returns `requiresEmailConfirmation: true`
+
+
+Confirm email with invalid OTP
+------------------------------
+Method: POST
+URL: http://localhost:5000/users/confirm-email
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "otp": "000000"
+}
+
+Expected:
+- status 401
+- `message: "Invalid or expired OTP"`
+
+
+Wrong current password test
+---------------------------
+Method: PATCH
+URL: http://localhost:5000/users/update-password
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Body:
+{
+  "currentPassword": "wrongpass",
+  "newPassword": "12345678"
+}
+
+Expected:
+- status 401
+- `message: "Current password is incorrect"`
+
+
+Reset password with invalid OTP
+-------------------------------
+Method: POST
+URL: http://localhost:5000/users/reset-password
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "otp": "000000",
+  "newPassword": "newpass123"
+}
+
+Expected:
+- status 401
+- `message: "Invalid or expired OTP"`
+
+
+Delete profile with invalid OTP
+-------------------------------
+Method: DELETE
+URL: http://localhost:5000/users/delete-profile
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Body:
+{
+  "otp": "000000"
+}
+
+Expected:
+- status 401
+- `message: "Invalid or expired OTP"`

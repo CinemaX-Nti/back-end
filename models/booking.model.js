@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const bookingFoodItemSchema = new mongoose.Schema(
   {
     itemId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'RestaurantItem',
+      ref: "RestaurantItem",
       required: true,
     },
     name: {
@@ -69,7 +69,7 @@ const bookingSchema = new mongoose.Schema(
       required: true,
       validate: {
         validator: (value) => Array.isArray(value) && value.length > 0,
-        message: 'At least one seat must be selected.',
+        message: "At least one seat must be selected.",
       },
     },
     foodItems: {
@@ -88,8 +88,8 @@ const bookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'cancelled'],
-      default: 'confirmed',
+      enum: ["pending", "confirmed", "cancelled", "expired"],
+      default: "pending",
     },
     totalAmount: {
       type: Number,
@@ -98,8 +98,32 @@ const bookingSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ['pending', 'paid', 'failed', 'refunded'],
-      default: 'pending',
+      enum: [
+        "waiting_transfer",
+        "waiting_approval",
+        "paid",
+        "failed",
+        "refunded",
+      ],
+      default: "waiting_transfer",
+    },
+    paymentReference: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    expiresAt: {
+      type: Date,
+      index: true,
+    },
+    confirmedAt: {
+      type: Date,
+      default: null,
+    },
+    qrCodeDataUrl: {
+      type: String,
+      trim: true,
+      default: null,
     },
   },
   {
@@ -107,4 +131,7 @@ const bookingSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model('Booking', bookingSchema);
+bookingSchema.index({ status: 1, expiresAt: 1 });
+bookingSchema.index({ paymentStatus: 1, createdAt: 1 });
+
+module.exports = mongoose.model("Booking", bookingSchema);

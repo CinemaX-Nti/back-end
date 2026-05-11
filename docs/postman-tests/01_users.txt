@@ -1,0 +1,277 @@
+USER POSTMAN TESTS
+==================
+
+2. Signup
+---------
+Method: POST
+URL: http://localhost:5000/users/signup
+
+Body:
+{
+  "firstName": "eslam",
+  "lastName": "gamal",
+  "email": "ahmed@example.com",
+  "password": "123456",
+  "phoneNumber": "01012345678",
+  "dateOfBirth": "2000-05-15"
+}
+
+Expected:
+- returns `success: true`
+- returns `data.user`
+- returns `data.requiresEmailConfirmation: true`
+- sends a confirmation OTP email
+
+Save:
+- user id as `USER_ID`
+- confirmation OTP from email inbox as `CONFIRMATION_OTP`
+
+
+3. Confirm Email
+----------------
+Method: POST
+URL: http://localhost:5000/users/confirm-email
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "otp": "PUT_CONFIRMATION_OTP_HERE"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- `message: "Email confirmed successfully"`
+
+
+4. Resend Confirmation OTP
+--------------------------
+Method: POST
+URL: http://localhost:5000/users/resend-confirmation-otp
+
+Body:
+{
+  "email": "ahmed@example.com"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- sends a new confirmation OTP email if the account is not confirmed
+
+Save:
+- latest confirmation OTP from email inbox as `CONFIRMATION_OTP`
+
+
+5. Signin
+---------
+Method: POST
+URL: http://localhost:5000/users/signin
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "password": "123456"
+}
+
+Expected:
+- returns `success: true`
+- returns `data.user`
+- returns `data.token`
+
+Save:
+- user token as `USER_TOKEN`
+
+
+6. Login With Google
+--------------------
+Method: POST
+URL: http://localhost:5000/users/google
+
+Body:
+{
+  "idToken": "PUT_GOOGLE_ID_TOKEN_HERE"
+}
+
+Expected:
+- returns `success: true`
+- creates a new google user if email does not exist
+- returns `data.token`
+
+Required env:
+- GOOGLE_CLIENT_ID
+- JWT_SECRET
+
+
+7. Update Password
+------------------
+Method: PATCH
+URL: http://localhost:5000/users/update-password
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Body:
+{
+  "currentPassword": "123456",
+  "newPassword": "12345678"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- `message: "Password updated successfully"`
+
+Notes:
+- works only for local accounts
+- use the new password in the next signin test
+
+
+8. Forget Password
+------------------
+Method: POST
+URL: http://localhost:5000/users/forget-password
+
+Body:
+{
+  "email": "ahmed@example.com"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- returns a generic success message even if the email does not exist
+- sends an OTP email if the account is a confirmed local account
+
+Required env:
+- EMAIL
+- EMAIL_PASSWORD
+
+Save:
+- OTP from email inbox as `RESET_OTP`
+
+
+9. Resend Password Reset OTP
+----------------------------
+Method: POST
+URL: http://localhost:5000/users/resend-password-reset-otp
+
+Body:
+{
+  "email": "ahmed@example.com"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- if a reset request is active, sends a new OTP email
+
+Save:
+- latest OTP from email inbox as `RESET_OTP`
+
+
+10. Reset Password
+------------------
+Method: POST
+URL: http://localhost:5000/users/reset-password
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "otp": "PUT_RESET_OTP_HERE",
+  "newPassword": "newpass123"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- `message: "Password reset successfully"`
+
+Notes:
+- use the most recent OTP from the email
+- OTP expires after 10 minutes
+
+
+11. Signin With New Password
+----------------------------
+Method: POST
+URL: http://localhost:5000/users/signin
+
+Body:
+{
+  "email": "ahmed@example.com",
+  "password": "newpass123"
+}
+
+Expected:
+- returns `success: true`
+- confirms the password reset worked
+- returns a valid new token
+
+Save:
+- replace `USER_TOKEN` with the new token if needed
+
+
+12. Request Delete Profile OTP
+------------------------------
+Method: POST
+URL: http://localhost:5000/users/request-delete-profile-otp
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Expected:
+- status 200
+- returns `success: true`
+- `message: "A profile deletion OTP has been sent to your email."`
+
+Save:
+- deletion OTP from email inbox as `DELETE_PROFILE_OTP`
+
+
+13. Delete Profile
+------------------
+Method: DELETE
+URL: http://localhost:5000/users/delete-profile
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Body:
+{
+  "otp": "PUT_DELETE_PROFILE_OTP_HERE"
+}
+
+Expected:
+- status 200
+- returns `success: true`
+- `message: "Profile deleted successfully"`
+
+Notes:
+- this deletes the current authenticated user account
+- after this request, the same token should no longer work
+
+
+14. Get My Profile
+------------------
+Method: GET
+URL: http://localhost:5000/users/profile
+
+Headers:
+Authorization: Bearer <USER_TOKEN>
+
+Expected:
+- returns logged-in user data
+
+
+15. Get All Users
+-----------------
+Method: GET
+URL: http://localhost:5000/users/
+
+Headers:
+Authorization: Bearer <ADMIN_TOKEN>
+
+Expected:
+- works only if logged-in user has `"role": "admin"`
+- normal user should get 403
