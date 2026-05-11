@@ -19,11 +19,13 @@ const router = express.Router();
 
 // Admin routes - must come before /:id routes to avoid route conflicts
 router.post('/', auth, isAdmin, validation(createMovieSchema), createMovie);
+
 router.post('/bulk/delete', auth, isAdmin, validation(bulkDeleteMoviesSchema), bulkDeleteMovies);
 router.get('/deleted', auth, isAdmin, getDeletedMovies);
 
 // Sub-resource routes - these also need to come before /:id
 router.get('/:id/showtimes', auth, getMovieShowTimes);
+
 router.get('/:id/stats', auth, getMovieStats);
 
 // Public routes
