@@ -1,17 +1,22 @@
-const express = require('express');
-const { createRestaurantItem, getRestaurantMenu } = require('../controllers/restaurant.controller');
-const { auth, isAdmin } = require('../middleware/auth.middleware');
+const express = require("express");
+const {
+  createRestaurantItem,
+  getRestaurantMenu,
+  getRestaurantItemById,
+  updateRestaurantItem,
+  deleteRestaurantItem,
+} = require("../controllers/restaurant.controller");
+const { auth, isAdmin } = require("../middleware/auth.middleware");
 
 const router = express.Router();
 
-/** 
- *   1. admin who will update or delete the restaurant items and he can not update it if some of users booked the restaurant items
+// Menu is shared for the single cinema snacks restaurant.
+// Anyone authenticated can browse it, while admins manage menu items.
 
-
-  
- */
-
-router.get('/menu', auth, getRestaurantMenu);
-router.post('/menu', auth, isAdmin, createRestaurantItem);
+router.get("/menu", auth, getRestaurantMenu);
+router.get("/menu/:id", auth, getRestaurantItemById);
+router.post("/menu", auth, isAdmin, createRestaurantItem);
+router.put("/menu/:id", auth, isAdmin, updateRestaurantItem);
+router.delete("/menu/:id", auth, isAdmin, deleteRestaurantItem);
 
 module.exports = router;

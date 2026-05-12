@@ -3,10 +3,10 @@ require('dotenv').config();
 const app = require('./app');
 const connectDB = require('./config/db');
 const { connectRedis } = require('./config/redis');
+const { startBookingExpiryWorker } = require('./utils/bookingExpiry');
 
 const startServer = async () => {
   const PORT = Number(process.env.PORT) || 5000;
-  console.log(PORT);
 
   try {
     await connectDB();

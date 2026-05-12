@@ -249,6 +249,7 @@ const createBooking = async (req, res, next) => {
             status: "pending",
             paymentStatus: "waiting_transfer",
             paymentReference,
+            isPaid: false,
             expiresAt,
             qrCodeDataUrl,
           },
@@ -449,6 +450,7 @@ const approvePayment = async (req, res, next) => {
 
       booking.status = "confirmed";
       booking.paymentStatus = "paid";
+      booking.isPaid = true;
       booking.confirmedAt = new Date();
       booking.expiresAt = null;
       await booking.save({ session });
