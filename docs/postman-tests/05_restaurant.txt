@@ -1,10 +1,28 @@
 RESTAURANT POSTMAN TESTS
 ========================
 
+Base URL
+http://localhost:5000
+
+Auth notes
+- All restaurant routes require `Authorization: Bearer <TOKEN>`.
+- `GET` routes can be tested with `userToken` or `adminToken`.
+- `POST`, `PUT`, and `DELETE` require `adminToken`.
+
+Suggested Postman variables
+- `baseUrl = http://localhost:5000`
+- `userToken = token from user signin`
+- `adminToken = token from admin signin`
+- `restaurantItemId = id from create restaurant item response`
+
 30. Create Restaurant Item
 --------------------------
 Method: POST
-URL: http://localhost:5000/restaurant/menu
+URL: {{baseUrl}}/restaurant/menu
+
+Headers:
+- `Authorization: Bearer {{adminToken}}`
+- `Content-Type: application/json`
 
 Body:
 {
@@ -17,9 +35,84 @@ Body:
 
 Expected:
 - returns created restaurant item
+- save returned `_id` as `restaurantItemId`
 
 
 31. Get Restaurant Menu
 -----------------------
 Method: GET
-URL: http://localhost:5000/restaurant/menu
+URL: {{baseUrl}}/restaurant/menu
+
+Headers:
+- `Authorization: Bearer {{userToken}}`
+
+Optional query params:
+- `page=1`
+- `limit=10`
+- `category=snacks`
+- `isAvailable=true`
+- `search=popcorn`
+- `sortBy=name|category|price|createdAt`
+- `sortOrder=asc|desc`
+
+Examples:
+- `{{baseUrl}}/restaurant/menu?search=popcorn`
+- `{{baseUrl}}/restaurant/menu?category=drinks&isAvailable=true`
+- `{{baseUrl}}/restaurant/menu?sortBy=price&sortOrder=desc`
+
+Expected:
+- returns paginated menu list
+- by default only available items are returned unless `isAvailable` is passed
+
+
+32. Get Restaurant Item By ID
+-----------------------------
+Method: GET
+URL: {{baseUrl}}/restaurant/menu/{{restaurantItemId}}
+
+Headers:
+- `Authorization: Bearer {{userToken}}`
+
+Expected:
+- returns one restaurant item
+
+
+33. Update Restaurant Item
+--------------------------
+Method: PUT
+URL: {{baseUrl}}/restaurant/menu/{{restaurantItemId}}
+
+Headers:
+- `Authorization: Bearer {{adminToken}}`
+- `Content-Type: application/json`
+
+Body:
+{
+  "price": 95,
+  "isAvailable": false
+}
+
+Expected:
+- returns updated restaurant item
+- confirm changed fields like `price` and `isAvailable`
+
+
+34. Delete Restaurant Item
+--------------------------
+Method: DELETE
+URL: {{baseUrl}}/restaurant/menu/{{restaurantItemId}}
+
+Headers:
+- `Authorization: Bearer {{adminToken}}`
+
+Expected:
+- returns success delete message
+
+
+35. Negative Checks
+-------------------
+Try these quick checks:
+- `GET {{baseUrl}}/restaurant/menu` without token -> `401`
+- `POST {{baseUrl}}/restaurant/menu` with `userToken` -> `403`
+- `PUT {{baseUrl}}/restaurant/menu/invalid-id` with `adminToken` -> `400`
+- `DELETE {{baseUrl}}/restaurant/menu/invalid-id` with `adminToken` -> `400`

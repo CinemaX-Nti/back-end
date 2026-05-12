@@ -2,11 +2,32 @@ const { RestaurantItem } = require("../models");
 const {
   getPaginationParams,
   formatPaginatedResponse,
+  isValidObjectId,
 } = require("../utils/movieHelpers");
+
+const ALLOWED_RESTAURANT_FIELDS = [
+  "name",
+  "description",
+  "category",
+  "price",
+  "isAvailable",
+];
+
+const sanitizeRestaurantItemBody = (body) => {
+  const sanitized = {};
+
+  ALLOWED_RESTAURANT_FIELDS.forEach((field) => {
+    if (body[field] !== undefined) {
+      sanitized[field] = body[field];
+    }
+  });
+
+  return sanitized;
+};
 
 const createRestaurantItem = async (req, res, next) => {
   try {
-    const item = await RestaurantItem.create(req.body);
+    const item = await RestaurantItem.create(sanitizeRestaurantItemBody(req.body));
     res.status(201).json(item);
   } catch (error) {
     next(error);
@@ -28,6 +49,14 @@ const getRestaurantMenu = async (req, res, next) => {
 
     if (category?.trim()) {
       filter.category = category.trim();
+    }
+
+    if (search?.trim()) {
+      filter.$or = [
+        { name: { $regex: search.trim(), $options: "i" } },
+        { description: { $regex: search.trim(), $options: "i" } },
+        { category: { $regex: search.trim(), $options: "i" } },
+      ];
     }
 
     if (isAvailable !== undefined) {
@@ -58,7 +87,75 @@ const getRestaurantMenu = async (req, res, next) => {
   }
 };
 
+const getRestaurantItemById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid restaurant item ID" });
+    }
+
+    const item = await RestaurantItem.findById(id).lean();
+
+    if (!item) {
+      return res.status(404).json({ message: "Restaurant item not found" });
+    }
+
+    return res.status(200).json(item);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateRestaurantItem = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid restaurant item ID" });
+    }
+
+    const updates = sanitizeRestaurantItemBody(req.body);
+
+    const item = await RestaurantItem.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!item) {
+      return res.status(404).json({ message: "Restaurant item not found" });
+    }
+
+    return res.status(200).json(item);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteRestaurantItem = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid restaurant item ID" });
+    }
+
+    const item = await RestaurantItem.findByIdAndDelete(id);
+
+    if (!item) {
+      return res.status(404).json({ message: "Restaurant item not found" });
+    }
+
+    return res.status(200).json({ message: "Restaurant item deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createRestaurantItem,
   getRestaurantMenu,
+  getRestaurantItemById,
+  updateRestaurantItem,
+  deleteRestaurantItem,
 };
