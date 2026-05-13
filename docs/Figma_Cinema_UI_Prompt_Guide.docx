@@ -1,0 +1,309 @@
+Cinema Booking UI Prompt Guide for Figma AI
+
+File: docs/Figma_Cinema_UI_Prompt_Guide.docx
+
+This document contains prompts you can copy/paste into Figma AI to generate a complete cinema booking UI (Customer App + Admin Dashboard) based on the existing backend capabilities.
+
+============================================================
+1) Master Prompt (generate full product structure)
+============================================================
+
+Prompt:
+Design a complete cinema booking product with two sides: a customer-facing app and an admin dashboard.
+
+Customer app pages:
+1. Welcome / Landing
+2. Sign Up
+3. Sign In
+4. Email Confirmation OTP
+5. Forgot Password
+6. Reset Password
+7. Movies Listing (search + filters)
+8. Movie Details (poster + description + showtimes preview)
+9. Showtimes Selection
+10. Seat Selection (seat grid + legends + booking summary)
+11. Food Add-ons (snacks/drinks + quantity + sticky summary)
+12. Booking Summary / Checkout
+13. Booking Success (digital ticket)
+14. Profile (edit info + change password + delete request)
+15. Delete Account OTP Confirmation
+16. Booking History
+
+Admin dashboard pages:
+1. Admin Dashboard Home (KPIs + recent bookings)
+2. Movies Management
+3. Create / Edit Movie Form
+4. Deleted Movies
+5. Movie Stats
+6. Halls Management
+7. Create / Edit Hall Form (seat row type builder)
+8. Showtimes Management
+9. Create Showtime Form
+10. Seat Map Admin View
+11. Restaurant Menu Management
+12. Create Restaurant Item Form
+13. Bookings Management (advanced filters)
+14. Users Management
+
+Visual style requirements:
+- Premium, cinematic, modern.
+- Dark “theater” theme with warm gold/red accents.
+- Strong typography hierarchy.
+- Rich poster/cards, ticket-inspired components.
+- Responsive layouts for desktop + mobile.
+- Clear state handling: empty screens, loading, success, error, unavailable items.
+
+Components and UI rules:
+- Reuse components: header/nav, search bar, filter drawer/sidebar, status badges, movie cards, showtime chips, seat component with variants (available/reserved/booked), OTP input component, booking summary card, food item card, admin tables, KPI cards.
+- Seat selection must include a legend for seat availability and seat type (standard/premium/vip).
+- Booking summary must show ticket total + food total + grand total.
+- Payment UI is placeholder-level only (no real integration).
+
+Output:
+Generate a cohesive UI kit and full page set for both roles.
+
+============================================================
+2) Design System Keywords (use in every prompt)
+============================================================
+
+Use these words so Figma AI matches the style:
+- cinematic, theater mood, dark UI, golden accents, poster-first layout, ticket UI
+- premium spacing, clear hierarchy, modern cards
+- badges/chips, strong CTAs, responsive design
+
+============================================================
+3) Page Prompts (copy/paste each section)
+============================================================
+
+------------------------------------------------------------
+A) Welcome / Landing Page
+------------------------------------------------------------
+Prompt:
+Design a premium cinema booking landing page for a web and mobile app. The page should feel cinematic and modern with a large hero banner, featured movie poster area, strong search bar, clear CTA buttons for Browse Movies, Sign In, and Create Account, plus promotional cards for premium seats, easy online booking, and snacks. Use a dark elegant theater mood with warm gold or red accents, bold typography, and card-based movie presentation.
+
+------------------------------------------------------------
+B) Sign Up Page
+------------------------------------------------------------
+Prompt:
+Design a sign up page for a cinema booking app. Include inputs for first name, last name, email, password, phone number, and date of birth. Add a primary create account button, a continue with Google button, and a sign in link. The layout should feel polished, trustworthy, and easy to scan.
+
+------------------------------------------------------------
+C) Sign In Page
+------------------------------------------------------------
+Prompt:
+Design a modern sign in page for a cinema booking platform. Include email and password fields, sign in button, Google sign in button, forgot password link, and link to create account. The design should look premium and simple with strong spacing.
+
+------------------------------------------------------------
+D) Email Confirmation OTP Page
+------------------------------------------------------------
+Prompt:
+Design an email verification page for a cinema app with a clean OTP entry experience. Include email display/input, 6-digit OTP input boxes, confirm button, resend code link, and helpful security guidance.
+
+------------------------------------------------------------
+E) Forgot Password Page
+------------------------------------------------------------
+Prompt:
+Design a forgot password page for a movie booking app. Include a simple email input, send reset code button, helper text that an OTP will be sent by email, and a link back to sign in.
+
+------------------------------------------------------------
+F) Reset Password Page
+------------------------------------------------------------
+Prompt:
+Design a reset password page for a cinema booking app with email input, OTP input, and new password input. Use a validation-friendly layout, secure visual cues, and a strong reset password button.
+
+------------------------------------------------------------
+G) Movies Listing Page
+------------------------------------------------------------
+Prompt:
+Design a movie browsing page for a cinema booking platform. Include a strong search bar, sidebar/top filter controls for genre, language, rating range, duration range, and movie status. Show movies as rich poster cards with title, genre, duration, rating, status badges, and a view details button. Premium streaming-and-ticketing hybrid.
+
+------------------------------------------------------------
+H) Movie Details Page
+------------------------------------------------------------
+Prompt:
+Design a movie details page for a cinema booking app. Show a large poster, movie title, rich description, genre chips, duration, language, release date, rating, trailer button, and status badge. Below, show an available showtimes section with date/time chips and a call to action to book.
+
+------------------------------------------------------------
+I) Showtimes Selection Page
+------------------------------------------------------------
+Prompt:
+Design a showtimes selection page for a cinema app. Present showtimes as clean cards or chips with date, start time, end time, hall name, format (2D/3D/IMAX), status, available seats, and pricing summary. Make it easy to compare and proceed to seat selection.
+
+------------------------------------------------------------
+J) Seat Selection Page
+------------------------------------------------------------
+Prompt:
+Design a seat selection page for a cinema booking app. Include a theater screen indicator, a realistic seat map grid, legends for available/reserved/booked seats, and style differences for standard/premium/vip rows. Show a live booking summary with selected seats, ticket pricing, and a continue button. Make it exciting and premium on both desktop and mobile.
+
+------------------------------------------------------------
+K) Food Add-ons Page
+------------------------------------------------------------
+Prompt:
+Design a cinema snacks add-ons page that appears after seat selection. Show food/drink cards with image area, item name, description, category, price, availability badge, and quantity controls. Keep a sticky order summary with selected seats, ticket total, food total, and a continue button.
+
+------------------------------------------------------------
+L) Booking Summary / Checkout Page
+------------------------------------------------------------
+Prompt:
+Design a booking summary page for a cinema app. Show final review of movie, hall, showtime, selected seats, snack items with quantity/subtotal, ticket total, food total, and grand total. Include a strong confirm booking button and ticket-style summary design.
+
+------------------------------------------------------------
+M) Booking Success / Digital Ticket Page
+------------------------------------------------------------
+Prompt:
+Design a booking success page with a premium digital ticket look. Show movie title, hall, showtime, seats, food order summary, booking status, payment status (placeholder), and a QR/barcode placeholder.
+
+------------------------------------------------------------
+N) Profile Page
+------------------------------------------------------------
+Prompt:
+Design a user profile and account settings page. Include sections for personal info (name/email/phone/dob), email confirmation state, change password, and delete profile request.
+
+------------------------------------------------------------
+O) Delete Account OTP Confirmation Page
+------------------------------------------------------------
+Prompt:
+Design a secure delete account confirmation page. Include a warning message, OTP input, a permanent delete button (danger styling), and a cancel action.
+
+------------------------------------------------------------
+P) Booking History Page
+------------------------------------------------------------
+Prompt:
+Design a booking history page. Show bookings as elegant cards/rows with poster thumbnail, movie title, showtime, hall, seats, booking status, payment status, and total amount. Include filters for current/past bookings.
+
+============================================================
+4) Admin Dashboard Prompts
+============================================================
+
+------------------------------------------------------------
+Admin Home
+------------------------------------------------------------
+Prompt:
+Design an admin dashboard for a cinema booking system. Use a professional layout with KPI cards for movies, bookings, revenue, and active showtimes, plus a recent bookings table and quick action links.
+
+------------------------------------------------------------
+Movies Management
+------------------------------------------------------------
+Prompt:
+Design an admin movies management page. Include searchable, filterable table or card grid with poster thumbnail, title, genre, rating, status, created by, and actions for edit, delete, restore, bulk delete, and stats.
+
+------------------------------------------------------------
+Create/Edit Movie Form
+------------------------------------------------------------
+Prompt:
+Design an admin movie form page for creating/editing movies. Include fields for title, description, duration, genres, language, release date, trailer URL, poster URL, rating, and status. Image-friendly and well structured.
+
+------------------------------------------------------------
+Deleted Movies
+------------------------------------------------------------
+Prompt:
+Design an admin deleted movies page. Show a clean list of soft-deleted movies with poster, title, deleted state, and restore action.
+
+------------------------------------------------------------
+Movie Stats
+------------------------------------------------------------
+Prompt:
+Design a movie analytics page. Show movie header (poster + title), KPI cards for total showtimes, total bookings, total revenue, average bookings per show, and a related showtimes section.
+
+------------------------------------------------------------
+Halls Management
+------------------------------------------------------------
+Prompt:
+Design an admin halls management page. Show halls with name, rows, columns, seat capacity, availability status, and actions to create, edit, delete, and view layout.
+
+------------------------------------------------------------
+Create/Edit Hall Form
+------------------------------------------------------------
+Prompt:
+Design an admin hall creation page. Include inputs for hall name, total rows, total columns, availability toggle, and a seat layout builder where row labels can be assigned to standard/premium/vip seat types.
+
+------------------------------------------------------------
+Showtimes Management
+------------------------------------------------------------
+Prompt:
+Design an admin showtimes management page. Show showtime list with movie, hall, start time, end time, format, status, available seats, and pricing for standard/premium/vip. Include actions to create showtime and seed seats.
+
+------------------------------------------------------------
+Create Showtime Form
+------------------------------------------------------------
+Prompt:
+Design an admin create showtime form. Include selectors for movie and hall, date/time pickers for start/end time, format (2D/3D/IMAX), status, and pricing inputs for standard/premium/vip seats.
+
+------------------------------------------------------------
+Seat Map Admin View
+------------------------------------------------------------
+Prompt:
+Design an admin seat map page for one showtime. Show movie/hall/time summary, seat grid, counts of available/reserved/booked seats, and an action to generate/seed seats if not present.
+
+------------------------------------------------------------
+Restaurant Menu Management
+------------------------------------------------------------
+Prompt:
+Design an admin restaurant menu management page. Include searchable/filterable list with category, price, availability, and create menu item button.
+
+------------------------------------------------------------
+Create Restaurant Item Form
+------------------------------------------------------------
+Prompt:
+Design an admin form for adding a snack/drink item. Include name, description, category, price, and availability.
+
+------------------------------------------------------------
+Bookings Management
+------------------------------------------------------------
+Prompt:
+Design an admin bookings management page with advanced filters (user, showtime, hall, movie, booking status, payment status). Show a data-rich table including seats, food total, ticket total, total amount, and status badges.
+
+------------------------------------------------------------
+Users Management
+------------------------------------------------------------
+Prompt:
+Design an admin users management page. Show a table with name, email, role, login provider, email confirmation state, phone number, and created date.
+
+============================================================
+5) Shared Components Prompts
+============================================================
+
+Create a component set (Figma AI):
+
+- Header + navigation (customer + admin variants)
+- Search bar component
+- Filter drawer/sidebar
+- Movie card + movie poster component
+- Showtime chip/card component
+- Seat component with states:
+  - available
+  - reserved
+  - booked
+  plus seat type styles:
+  - standard
+  - premium
+  - vip
+- Status badges (running/scheduled/finished/cancelled, booking status, payment status)
+- OTP input component (6-digit)
+- Ticket-style summary card
+- Food item card with quantity stepper
+- Admin table pattern
+- KPI card pattern
+- Confirmation modal for restore/delete/danger actions
+
+============================================================
+6) UX States Checklist (must include)
+============================================================
+
+- Loading state
+- Empty lists:
+  - empty movie list
+  - no showtimes available
+  - no bookings
+  - seat map not seeded yet
+- Seat unavailable states
+- Invalid OTP error state
+- Email not confirmed state
+- Success state and error toast/banner
+- Soft-deleted movie state
+- Unavailable menu item state
+
+============================================================
+END OF DOCUMENT
+============================================================
+

@@ -29,7 +29,7 @@ router.get('/:id/showtimes', auth, getMovieShowTimes);
 router.get('/:id/stats', auth, getMovieStats);
 
 // Public routes
-router.get('/', auth, validation(filterMoviesSchema), getMovies);
+router.get('/', validation(filterMoviesSchema), getMovies);
 router.get('/:id', auth, getMovieById);
 
 // Admin update/delete routes
