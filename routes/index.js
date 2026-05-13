@@ -10,6 +10,7 @@ const restaurantRoutes = require("./restaurant.routes");
 const router = express.Router();
 
 router.use("/users", userRoutes);
+router.use("/api/users", userRoutes);
 router.use("/movies", movieRoutes);
 router.use("/halls", hallRoutes);
 router.use("/showtimes", showTimeRoutes);
@@ -18,5 +19,6 @@ router.use("/api/bookings", bookingRoutes);
 router.use("/admin", adminRoutes);
 router.use("/api/admin", adminRoutes);
 router.use("/restaurant", restaurantRoutes);
+router.use("/api/restaurant", restaurantRoutes);
 
 module.exports = router;
