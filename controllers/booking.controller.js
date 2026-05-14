@@ -1,14 +1,8 @@
-const mongoose = require("mongoose");
-const QRCode = require("qrcode");
-const { Booking, Seat, ShowTime, RestaurantItem } = require("../models");
-const {
-  getPaginationParams,
-  formatPaginatedResponse,
-} = require("../utils/movieHelpers");
-const {
-  BOOKING_HOLD_MINUTES,
-  releaseExpiredPendingBookings,
-} = require("../utils/bookingExpiry");
+const mongoose = require('mongoose');
+const QRCode = require('qrcode');
+const { Booking, Seat, ShowTime, RestaurantItem } = require('../models');
+const { getPaginationParams, formatPaginatedResponse } = require('../utils/movieHelpers');
+const { BOOKING_HOLD_MINUTES, releaseExpiredPendingBookings } = require('../utils/bookingExpiry');
 
 const createHttpError = (message, statusCode = 400) => {
   const error = new Error(message);
@@ -16,9 +10,8 @@ const createHttpError = (message, statusCode = 400) => {
   return error;
 };
 
-const isRetryableTransactionError = (error) =>
-  error?.errorLabels?.includes("TransientTransactionError") ||
-  error?.errorLabels?.includes("UnknownTransactionCommitResult");
+const isRetryableTransactionError = error =>
+  error?.errorLabels?.includes('TransientTransactionError') || error?.errorLabels?.includes('UnknownTransactionCommitResult');
 
 const runTransactionWithRetry = async (work, maxRetries = 3) => {
   let lastError;
@@ -48,63 +41,46 @@ const runTransactionWithRetry = async (work, maxRetries = 3) => {
   throw lastError;
 };
 
-const validateAndNormalizeBookingInput = (req) => {
+const validateAndNormalizeBookingInput = req => {
   const { userId, showTimeId, foodItems = [], paymentReference } = req.body;
 
   if (!mongoose.isValidObjectId(userId)) {
-    throw createHttpError("A valid userId is required.");
+    throw createHttpError('A valid userId is required.');
   }
 
   if (!mongoose.isValidObjectId(showTimeId)) {
-    throw createHttpError("A valid showTimeId is required.");
+    throw createHttpError('A valid showTimeId is required.');
   }
 
   if (!Array.isArray(req.body.seats)) {
-    throw createHttpError("seats must be an array of seat numbers.");
+    throw createHttpError('seats must be an array of seat numbers.');
   }
 
-  const invalidSeatValue = req.body.seats.find(
-    (seatNumber) => typeof seatNumber !== "string" || seatNumber.trim() === "",
-  );
+  const invalidSeatValue = req.body.seats.find(seatNumber => typeof seatNumber !== 'string' || seatNumber.trim() === '');
 
   if (invalidSeatValue !== undefined) {
-    throw createHttpError("Each seat must be a non-empty string like A1 or B3.");
+    throw createHttpError('Each seat must be a non-empty string like A1 or B3.');
   }
 
   if (!Array.isArray(foodItems)) {
-    throw createHttpError("foodItems must be an array.");
+    throw createHttpError('foodItems must be an array.');
   }
 
-  const invalidFoodItem = foodItems.find(
-    (item) =>
-      !item ||
-      !mongoose.isValidObjectId(item.itemId) ||
-      !Number.isInteger(item.quantity) ||
-      item.quantity < 1,
-  );
+  const invalidFoodItem = foodItems.find(item => !item || !mongoose.isValidObjectId(item.itemId) || !Number.isInteger(item.quantity) || item.quantity < 1);
 
   if (invalidFoodItem) {
-    throw createHttpError(
-      "Each food item must include a valid itemId and a quantity of at least 1.",
-    );
+    throw createHttpError('Each food item must include a valid itemId and a quantity of at least 1.');
   }
 
-  const requestedSeats = req.body.seats.map((seatNumber) =>
-    seatNumber.trim().toUpperCase(),
-  );
+  const requestedSeats = req.body.seats.map(seatNumber => seatNumber.trim().toUpperCase());
   const uniqueSeatNumbers = [...new Set(requestedSeats)];
 
   if (uniqueSeatNumbers.length === 0) {
-    throw createHttpError("At least one seat must be selected.");
+    throw createHttpError('At least one seat must be selected.');
   }
 
-  if (
-    paymentReference !== undefined &&
-    (typeof paymentReference !== "string" || paymentReference.trim() === "")
-  ) {
-    throw createHttpError(
-      "paymentReference must be a non-empty string when provided.",
-    );
+  if (paymentReference !== undefined && (typeof paymentReference !== 'string' || paymentReference.trim() === '')) {
+    throw createHttpError('paymentReference must be a non-empty string when provided.');
   }
 
   return {
@@ -116,18 +92,15 @@ const validateAndNormalizeBookingInput = (req) => {
   };
 };
 
-const getAdminReviewBookingUrl = (bookingId) => {
-  const baseUrl =
-    process.env.FRONTEND_URL ||
-    "https://your-domain.com";
+const getAdminReviewBookingUrl = bookingId => {
+  const baseUrl = process.env.FRONTEND_URL || 'https://your-domain.com';
 
-  return `${baseUrl.replace(/\/+$/, "")}/api/bookings/confirm-scan/${bookingId}`;
+  return `${baseUrl.replace(/\/+$/, '')}/api/bookings/confirm-scan/${bookingId}`;
 };
 
 const createBooking = async (req, res, next) => {
   try {
-    const { userId, showTimeId, foodItems, paymentReference, uniqueSeatNumbers } =
-      validateAndNormalizeBookingInput(req);
+    const { userId, showTimeId, foodItems, paymentReference, uniqueSeatNumbers } = validateAndNormalizeBookingInput(req);
 
     await releaseExpiredPendingBookings({ showTimeId });
 
@@ -136,22 +109,19 @@ const createBooking = async (req, res, next) => {
     const reviewBookingUrl = getAdminReviewBookingUrl(bookingId.toString());
     const qrCodeDataUrl = await QRCode.toDataURL(reviewBookingUrl);
 
-    const booking = await runTransactionWithRetry(async (session) => {
-      const showTime = await ShowTime.findById(showTimeId)
-        .populate("movieId", "title")
-        .populate("hallId", "name")
-        .session(session);
+    const booking = await runTransactionWithRetry(async session => {
+      const showTime = await ShowTime.findById(showTimeId).populate('movieId', 'title').populate('hallId', 'name').session(session);
 
       if (!showTime) {
-        throw createHttpError("Showtime not found.", 404);
+        throw createHttpError('Showtime not found.', 404);
       }
 
       if (!showTime.movieId) {
-        throw createHttpError("Movie not found for this showtime.", 404);
+        throw createHttpError('Movie not found for this showtime.', 404);
       }
 
       if (!showTime.hallId) {
-        throw createHttpError("Hall not found for this showtime.", 404);
+        throw createHttpError('Hall not found for this showtime.', 404);
       }
 
       const seatDocuments = await Seat.find({
@@ -160,39 +130,34 @@ const createBooking = async (req, res, next) => {
       }).session(session);
 
       if (seatDocuments.length === 0) {
-        throw createHttpError(
-          "No seats exist for this showtime yet. Seed the showtime seats first.",
-        );
+        throw createHttpError('No seats exist for this showtime yet. Seed the showtime seats first.');
       }
 
       if (seatDocuments.length !== uniqueSeatNumbers.length) {
-        throw createHttpError("One or more selected seats do not exist.");
+        throw createHttpError('One or more selected seats do not exist.');
       }
 
       const lockResult = await Seat.updateMany(
         {
           showTimeId,
           seatNumber: { $in: uniqueSeatNumbers },
-          status: "available",
+          status: 'available',
         },
         {
           $set: {
-            status: "locked",
+            status: 'locked',
           },
         },
-        { session },
+        { session }
       );
 
       if (lockResult.modifiedCount !== uniqueSeatNumbers.length) {
-        throw createHttpError(
-          "One or more selected seats were just booked by another user. Please try again.",
-          409,
-        );
+        throw createHttpError('One or more selected seats were just booked by another user. Please try again.', 409);
       }
 
       const ticketTotal = seatDocuments.reduce((sum, seat) => sum + seat.price, 0);
 
-      const uniqueFoodItemIds = [...new Set(foodItems.map((item) => item.itemId))];
+      const uniqueFoodItemIds = [...new Set(foodItems.map(item => item.itemId))];
       const menuItems =
         uniqueFoodItemIds.length > 0
           ? await RestaurantItem.find({
@@ -204,14 +169,10 @@ const createBooking = async (req, res, next) => {
           : [];
 
       if (menuItems.length !== uniqueFoodItemIds.length) {
-        throw createHttpError(
-          "One or more selected food items do not exist or are unavailable.",
-        );
+        throw createHttpError('One or more selected food items do not exist or are unavailable.');
       }
 
-      const menuItemMap = new Map(
-        menuItems.map((item) => [item._id.toString(), item]),
-      );
+      const menuItemMap = new Map(menuItems.map(item => [item._id.toString(), item]));
 
       const normalizedFoodItems = foodItems.map(({ itemId, quantity }) => {
         const menuItem = menuItemMap.get(itemId.toString());
@@ -226,10 +187,7 @@ const createBooking = async (req, res, next) => {
         };
       });
 
-      const foodTotal = normalizedFoodItems.reduce(
-        (sum, item) => sum + item.subtotal,
-        0,
-      );
+      const foodTotal = normalizedFoodItems.reduce((sum, item) => sum + item.subtotal, 0);
       const totalAmount = ticketTotal + foodTotal;
 
       await Booking.create(
@@ -246,20 +204,20 @@ const createBooking = async (req, res, next) => {
             ticketTotal,
             foodTotal,
             totalAmount,
-            status: "pending",
-            paymentStatus: "waiting_transfer",
+            status: 'pending',
+            paymentStatus: 'waiting_transfer',
             paymentReference,
             isPaid: false,
             expiresAt,
             qrCodeDataUrl,
           },
         ],
-        { session },
+        { session }
       );
 
       const availableSeats = await Seat.countDocuments({
         showTimeId,
-        status: "available",
+        status: 'available',
       }).session(session);
 
       await ShowTime.findByIdAndUpdate(
@@ -267,24 +225,23 @@ const createBooking = async (req, res, next) => {
         {
           availableSeats,
         },
-        { session },
+        { session }
       );
 
       return bookingId;
     });
 
     const populatedBooking = await Booking.findById(booking)
-      .populate("userId")
-      .populate("hallId")
-      .populate("movieId")
+      .populate('userId')
+      .populate('hallId')
+      .populate('movieId')
       .populate({
-        path: "showTimeId",
-        populate: ["movieId", "hallId"],
+        path: 'showTimeId',
+        populate: ['movieId', 'hallId'],
       });
 
     res.status(201).json({
-      message:
-        "Booking created successfully. Complete the wallet transfer and wait for admin approval before the hold expires.",
+      message: 'Booking created successfully. Complete the wallet transfer and wait for admin approval before the hold expires.',
       booking: populatedBooking,
       qrReviewLink: reviewBookingUrl,
       paymentInstructions: {
@@ -292,7 +249,7 @@ const createBooking = async (req, res, next) => {
         accountName: process.env.ADMIN_WALLET_ACCOUNT_NAME || null,
         accountNumber: process.env.ADMIN_WALLET_ACCOUNT_NUMBER || null,
         bankName: process.env.ADMIN_WALLET_BANK_NAME || null,
-        note: "Use the booking ID or your payment reference when submitting the transfer.",
+        note: 'Use the booking ID or your payment reference when submitting the transfer.',
       },
       expiresInMinutes: BOOKING_HOLD_MINUTES,
     });
@@ -306,58 +263,55 @@ const confirmScan = async (req, res, next) => {
     const { bookingId } = req.params;
 
     if (!mongoose.isValidObjectId(bookingId)) {
-      throw createHttpError("A valid bookingId is required.");
+      throw createHttpError('A valid bookingId is required.');
     }
 
     await releaseExpiredPendingBookings({ bookingId });
 
-    const reviewedBookingId = await runTransactionWithRetry(async (session) => {
+    const reviewedBookingId = await runTransactionWithRetry(async session => {
       const booking = await Booking.findById(bookingId).session(session);
 
       if (!booking) {
-        throw createHttpError("Booking not found.", 404);
+        throw createHttpError('Booking not found.', 404);
       }
 
-      if (booking.status === "expired") {
-        throw createHttpError("Booking hold has expired.", 410);
+      if (booking.status === 'expired') {
+        throw createHttpError('Booking hold has expired.', 410);
       }
 
-      if (booking.status === "cancelled") {
-        throw createHttpError("Cancelled bookings cannot be submitted for review.", 409);
+      if (booking.status === 'cancelled') {
+        throw createHttpError('Cancelled bookings cannot be submitted for review.', 409);
       }
 
-      if (booking.status === "confirmed" || booking.paymentStatus === "paid") {
-        throw createHttpError("Booking payment has already been approved.", 409);
+      if (booking.status === 'confirmed' || booking.paymentStatus === 'paid') {
+        throw createHttpError('Booking payment has already been approved.', 409);
       }
 
       if (booking.expiresAt && booking.expiresAt <= new Date()) {
-        throw createHttpError("Booking hold has expired.", 410);
+        throw createHttpError('Booking hold has expired.', 410);
       }
 
-      if (booking.paymentStatus === "waiting_transfer") {
-        booking.paymentStatus = "waiting_approval";
+      if (booking.paymentStatus === 'waiting_transfer') {
+        booking.paymentStatus = 'waiting_approval';
         await booking.save({ session });
-      } else if (booking.paymentStatus !== "waiting_approval") {
-        throw createHttpError(
-          "This booking cannot be submitted for admin approval in its current payment state.",
-          409,
-        );
+      } else if (booking.paymentStatus !== 'waiting_approval') {
+        throw createHttpError('This booking cannot be submitted for admin approval in its current payment state.', 409);
       }
 
       return booking._id;
     });
 
     const populatedBooking = await Booking.findById(reviewedBookingId)
-      .populate("userId")
-      .populate("hallId")
-      .populate("movieId")
+      .populate('userId')
+      .populate('hallId')
+      .populate('movieId')
       .populate({
-        path: "showTimeId",
-        populate: ["movieId", "hallId"],
+        path: 'showTimeId',
+        populate: ['movieId', 'hallId'],
       });
 
     res.status(200).json({
-      message: "Payment submitted for review. Please wait for admin confirmation.",
+      message: 'Payment submitted for review. Please wait for admin confirmation.',
       booking: populatedBooking,
     });
   } catch (error) {
@@ -370,41 +324,36 @@ const approvePayment = async (req, res, next) => {
     const { bookingId } = req.params;
 
     if (!mongoose.isValidObjectId(bookingId)) {
-      throw createHttpError("A valid bookingId is required.");
+      throw createHttpError('A valid bookingId is required.');
     }
 
     await releaseExpiredPendingBookings({ bookingId });
 
-    const confirmedBookingId = await runTransactionWithRetry(async (session) => {
+    const confirmedBookingId = await runTransactionWithRetry(async session => {
       const booking = await Booking.findById(bookingId).session(session);
 
       if (!booking) {
-        throw createHttpError("Booking not found.", 404);
+        throw createHttpError('Booking not found.', 404);
       }
 
-      if (booking.status === "confirmed") {
-        throw createHttpError("Booking payment is already approved.", 409);
+      if (booking.status === 'confirmed') {
+        throw createHttpError('Booking payment is already approved.', 409);
       }
 
-      if (booking.status === "expired") {
-        throw createHttpError("Booking hold has expired.", 410);
+      if (booking.status === 'expired') {
+        throw createHttpError('Booking hold has expired.', 410);
       }
 
-      if (booking.status === "cancelled") {
-        throw createHttpError("Cancelled bookings cannot be confirmed.", 409);
+      if (booking.status === 'cancelled') {
+        throw createHttpError('Cancelled bookings cannot be confirmed.', 409);
       }
 
-      if (
-        booking.paymentStatus !== "waiting_approval"
-      ) {
-        throw createHttpError(
-          "Only bookings waiting for admin approval can be approved.",
-          409,
-        );
+      if (!['waiting_transfer', 'waiting_approval'].includes(booking.paymentStatus)) {
+        throw createHttpError('Only pending bookings waiting for transfer or admin approval can be approved.', 409);
       }
 
       if (booking.expiresAt && booking.expiresAt <= new Date()) {
-        throw createHttpError("Booking hold has expired.", 410);
+        throw createHttpError('Booking hold has expired.', 410);
       }
 
       const seatDocuments = await Seat.find({
@@ -413,43 +362,35 @@ const approvePayment = async (req, res, next) => {
       }).session(session);
 
       if (seatDocuments.length !== booking.seats.length) {
-        throw createHttpError("One or more seats linked to this booking no longer exist.", 409);
+        throw createHttpError('One or more seats linked to this booking no longer exist.', 409);
       }
 
-      const invalidSeats = seatDocuments
-        .filter((seat) => seat.status !== "locked")
-        .map((seat) => `${seat.seatNumber} (${seat.status})`);
+      const invalidSeats = seatDocuments.filter(seat => seat.status !== 'locked').map(seat => `${seat.seatNumber} (${seat.status})`);
 
       if (invalidSeats.length > 0) {
-        throw createHttpError(
-          `Booking cannot be confirmed because these seats are no longer locked: ${invalidSeats.join(", ")}.`,
-          409,
-        );
+        throw createHttpError(`Booking cannot be confirmed because these seats are no longer locked: ${invalidSeats.join(', ')}.`, 409);
       }
 
       const seatUpdateResult = await Seat.updateMany(
         {
           showTimeId: booking.showTimeId,
           seatNumber: { $in: booking.seats },
-          status: "locked",
+          status: 'locked',
         },
         {
           $set: {
-            status: "booked",
+            status: 'booked',
           },
         },
-        { session },
+        { session }
       );
 
       if (seatUpdateResult.modifiedCount !== booking.seats.length) {
-        throw createHttpError(
-          "Booking confirmation failed because one or more seats changed state.",
-          409,
-        );
+        throw createHttpError('Booking confirmation failed because one or more seats changed state.', 409);
       }
 
-      booking.status = "confirmed";
-      booking.paymentStatus = "paid";
+      booking.status = 'confirmed';
+      booking.paymentStatus = 'paid';
       booking.isPaid = true;
       booking.confirmedAt = new Date();
       booking.expiresAt = null;
@@ -457,7 +398,7 @@ const approvePayment = async (req, res, next) => {
 
       const availableSeats = await Seat.countDocuments({
         showTimeId: booking.showTimeId,
-        status: "available",
+        status: 'available',
       }).session(session);
 
       await ShowTime.findByIdAndUpdate(
@@ -465,23 +406,23 @@ const approvePayment = async (req, res, next) => {
         {
           availableSeats,
         },
-        { session },
+        { session }
       );
 
       return booking._id;
     });
 
     const populatedBooking = await Booking.findById(confirmedBookingId)
-      .populate("userId")
-      .populate("hallId")
-      .populate("movieId")
+      .populate('userId')
+      .populate('hallId')
+      .populate('movieId')
       .populate({
-        path: "showTimeId",
-        populate: ["movieId", "hallId"],
+        path: 'showTimeId',
+        populate: ['movieId', 'hallId'],
       });
 
     res.status(200).json({
-      message: "Payment approved successfully.",
+      message: 'Payment approved successfully.',
       booking: populatedBooking,
     });
   } catch (error) {
@@ -495,22 +436,22 @@ const getPendingPayments = async (req, res, next) => {
 
     const [bookings, total] = await Promise.all([
       Booking.find({
-        status: "pending",
-        paymentStatus: "waiting_approval",
+        status: 'pending',
+        paymentStatus: 'waiting_approval',
       })
-        .populate("userId")
-        .populate("hallId")
-        .populate("movieId")
+        .populate('userId')
+        .populate('hallId')
+        .populate('movieId')
         .populate({
-          path: "showTimeId",
-          populate: ["movieId", "hallId"],
+          path: 'showTimeId',
+          populate: ['movieId', 'hallId'],
         })
         .sort({ createdAt: 1 })
         .skip(skip)
         .limit(limit),
       Booking.countDocuments({
-        status: "pending",
-        paymentStatus: "waiting_approval",
+        status: 'pending',
+        paymentStatus: 'waiting_approval',
       }),
     ]);
 
@@ -523,83 +464,68 @@ const getPendingPayments = async (req, res, next) => {
 const getBookings = async (req, res, next) => {
   try {
     const { skip, limit, page } = getPaginationParams(req.query);
-    const {
-      userId,
-      showTimeId,
-      hallId,
-      movieId,
-      status,
-      paymentStatus,
-      filmName,
-      sortOrder = "desc",
-    } = req.query;
+    const { userId, showTimeId, hallId, movieId, status, paymentStatus, filmName, sortOrder = 'desc' } = req.query;
 
     const filter = {};
 
     if (userId) {
       if (!mongoose.isValidObjectId(userId)) {
-        throw createHttpError("Invalid userId query param.");
+        throw createHttpError('Invalid userId query param.');
       }
       filter.userId = userId;
     }
 
     if (showTimeId) {
       if (!mongoose.isValidObjectId(showTimeId)) {
-        throw createHttpError("Invalid showTimeId query param.");
+        throw createHttpError('Invalid showTimeId query param.');
       }
       filter.showTimeId = showTimeId;
     }
 
     if (hallId) {
       if (!mongoose.isValidObjectId(hallId)) {
-        throw createHttpError("Invalid hallId query param.");
+        throw createHttpError('Invalid hallId query param.');
       }
       filter.hallId = hallId;
     }
 
     if (movieId) {
       if (!mongoose.isValidObjectId(movieId)) {
-        throw createHttpError("Invalid movieId query param.");
+        throw createHttpError('Invalid movieId query param.');
       }
       filter.movieId = movieId;
     }
 
     if (status) {
-      const allowedStatuses = ["pending", "confirmed", "cancelled", "expired"];
+      const allowedStatuses = ['pending', 'confirmed', 'cancelled', 'expired'];
       if (!allowedStatuses.includes(status)) {
-        throw createHttpError("Invalid status query param.");
+        throw createHttpError('Invalid status query param.');
       }
       filter.status = status;
     }
 
     if (paymentStatus) {
-      const allowedPaymentStatuses = [
-        "waiting_transfer",
-        "waiting_approval",
-        "paid",
-        "failed",
-        "refunded",
-      ];
+      const allowedPaymentStatuses = ['waiting_transfer', 'waiting_approval', 'paid', 'failed', 'refunded'];
       if (!allowedPaymentStatuses.includes(paymentStatus)) {
-        throw createHttpError("Invalid paymentStatus query param.");
+        throw createHttpError('Invalid paymentStatus query param.');
       }
       filter.paymentStatus = paymentStatus;
     }
 
     if (filmName?.trim()) {
-      filter.filmName = { $regex: filmName.trim(), $options: "i" };
+      filter.filmName = { $regex: filmName.trim(), $options: 'i' };
     }
 
     const [bookings, total] = await Promise.all([
       Booking.find(filter)
-        .populate("userId")
-        .populate("hallId")
-        .populate("movieId")
+        .populate('userId')
+        .populate('hallId')
+        .populate('movieId')
         .populate({
-          path: "showTimeId",
-          populate: ["movieId", "hallId"],
+          path: 'showTimeId',
+          populate: ['movieId', 'hallId'],
         })
-        .sort({ createdAt: sortOrder === "asc" ? 1 : -1 })
+        .sort({ createdAt: sortOrder === 'asc' ? 1 : -1 })
         .skip(skip)
         .limit(limit),
       Booking.countDocuments(filter),
@@ -611,10 +537,48 @@ const getBookings = async (req, res, next) => {
   }
 };
 
+const getDashboardStats = async (req, res, next) => {
+  try {
+    // Get total confirmed bookings and revenue
+    const confirmedBookings = await Booking.find({ status: 'confirmed' });
+    const totalBookings = confirmedBookings.length;
+    const totalRevenue = confirmedBookings.reduce((sum, booking) => sum + (booking.totalAmount || 0), 0);
+
+    // Get active showtimes (scheduled or running)
+    const activeShowtimes = await ShowTime.countDocuments({
+      status: { $in: ['scheduled', 'running'] },
+    });
+
+    // Get recent bookings (last 5 confirmed)
+    const recentBookings = await Booking.find({ status: 'confirmed' })
+      .populate('userId', 'name email')
+      .populate('hallId', 'name')
+      .populate({
+        path: 'showTimeId',
+        populate: ['movieId'],
+      })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalBookings,
+        totalRevenue,
+        activeShowtimes,
+        recentBookings,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   approvePayment,
   confirmScan,
   createBooking,
   getPendingPayments,
   getBookings,
+  getDashboardStats,
 };

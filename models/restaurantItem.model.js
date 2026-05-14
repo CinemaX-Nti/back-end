@@ -12,6 +12,11 @@ const restaurantItemSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    imageUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     category: {
       type: String,
       trim: true,

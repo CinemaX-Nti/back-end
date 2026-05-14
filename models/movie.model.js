@@ -1,12 +1,12 @@
-const mongoose = require("mongoose");
-const { GENRES, normalizeGenre } = require("../utils/movieHelpers");
+const mongoose = require('mongoose');
+const { GENRES, normalizeGenre } = require('../utils/movieHelpers');
 
 // Movie schema - handles all film data in the cinema system
 const movieSchema = new mongoose.Schema(
   {
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     title: {
@@ -29,14 +29,14 @@ const movieSchema = new mongoose.Schema(
       type: [String],
       required: true,
       enum: GENRES,
-      set: (genres) =>
-        Array.isArray(genres) ? genres.map((genre) => normalizeGenre(genre)) : genres,
+      set: genres => (Array.isArray(genres) ? genres.map(genre => normalizeGenre(genre)) : genres),
     },
     language: {
       type: String,
       minLength: 2,
       maxLength: 15,
       trim: true,
+      lowercase: true,
     },
     releaseDate: Date,
     trailerUrl: String,
@@ -51,8 +51,8 @@ const movieSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["now_showing", "coming_soon", "archived"],
-      default: "coming_soon",
+      enum: ['now_showing', 'coming_soon', 'archived'],
+      default: 'coming_soon',
     },
     isDeleted: {
       type: Boolean,
@@ -61,19 +61,19 @@ const movieSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 // Indexes for common queries - makes filtering way faster
 movieSchema.index({ isDeleted: 1, status: 1 });
 movieSchema.index({ isDeleted: 1, genre: 1 });
-movieSchema.index({ isDeleted: 1, title: "text", description: "text" });
+movieSchema.index({ isDeleted: 1, title: 'text', description: 'text' });
 movieSchema.index({ isDeleted: 1, rating: -1 });
 movieSchema.index({ createdBy: 1, isDeleted: 1 });
 
 // Check for duplicate titles before saving (case-insensitive)
 // We do this manually instead of unique: true because we need to handle soft deletes
-movieSchema.pre("save", async function (next) {
+movieSchema.pre('save', async function (next) {
   try {
     // Normalize and trim the title
     this.title = this.title.trim();
@@ -89,10 +89,10 @@ movieSchema.pre("save", async function (next) {
       query._id = { $ne: this._id };
     }
 
-    const existingMovie = await mongoose.model("Movie").findOne(query);
+    const existingMovie = await mongoose.model('Movie').findOne(query);
 
     if (existingMovie) {
-      const error = new Error("Movie title already exists");
+      const error = new Error('Movie title already exists');
       error.code = 11000;
       throw error;
     }
@@ -106,4 +106,4 @@ movieSchema.pre("save", async function (next) {
 // movieSchema.index({ title: 1, description: 1 }, { unique: true });
 // >>>>>>> main
 
-module.exports = mongoose.model("Movie", movieSchema);
+module.exports = mongoose.model('Movie', movieSchema);

@@ -8,6 +8,7 @@ const {
 const ALLOWED_RESTAURANT_FIELDS = [
   "name",
   "description",
+  "imageUrl",
   "category",
   "price",
   "isAvailable",
