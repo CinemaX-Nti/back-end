@@ -1,5 +1,7 @@
 const { z } = require("zod");
-const { GENRES, PAGINATION_LIMITS, normalizeGenre } = require("../utils/movieHelpers");
+const { GENRES, PAGINATION_LIMITS, normalizeGenre, normalizeMovieLanguage, SUPPORTED_MOVIE_LANGUAGES } = require("../utils/movieHelpers");
+
+const ageRatingSchema = z.enum(['G', 'PG', 'PG-13', '16+', '18+']);
 
 const genreItemSchema = z
   .string()
@@ -8,6 +10,15 @@ const genreItemSchema = z
   .transform(normalizeGenre)
   .refine((val) => GENRES.includes(val), {
     message: "Invalid genre",
+  });
+
+const languageSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .transform(normalizeMovieLanguage)
+  .refine((value) => SUPPORTED_MOVIE_LANGUAGES.includes(value), {
+    message: `Language must be one of: ${SUPPORTED_MOVIE_LANGUAGES.join(", ")}`,
   });
 
 // Validation for creating a new movie
@@ -33,7 +44,7 @@ const createMovieSchema = z.object({
       .min(1, "At least one genre is required")
       .max(10, "Maximum 10 genres allowed"),
 
-    language: z.string().trim().min(1).optional(),
+    language: languageSchema.optional(),
     releaseDate: z.coerce.date().optional(),
     trailerUrl: z
       .string()
@@ -46,6 +57,7 @@ const createMovieSchema = z.object({
       .min(0, "Rating must be at least 0")
       .max(10, "Rating must not exceed 10")
       .optional(),
+    ageRating: ageRatingSchema.optional(),
     status: z.enum(["now_showing", "coming_soon", "archived"]).optional(),
   }),
 });
@@ -77,7 +89,7 @@ const updateMovieSchema = z.object({
         .min(1, "At least one genre is required")
         .max(10, "Maximum 10 genres allowed")
         .optional(),
-      language: z.string().trim().min(1).optional(),
+      language: languageSchema.optional(),
       releaseDate: z.coerce.date().optional(),
       trailerUrl: z
         .string()
@@ -90,6 +102,7 @@ const updateMovieSchema = z.object({
         .min(0, "Rating must be at least 0")
         .max(10, "Rating must not exceed 10")
         .optional(),
+      ageRating: ageRatingSchema.optional(),
       status: z.enum(["now_showing", "coming_soon", "archived"]).optional(),
     })
     .strict("No unknown fields allowed"),
@@ -101,7 +114,7 @@ const filterMoviesSchema = z.object({
     .object({
       genre: genreItemSchema.optional(),
       status: z.enum(["now_showing", "coming_soon", "archived"]).optional(),
-      language: z.string().trim().optional(),
+      language: languageSchema.optional(),
       minRating: z.coerce
         .number()
         .min(0, "Minimum rating must be at least 0")

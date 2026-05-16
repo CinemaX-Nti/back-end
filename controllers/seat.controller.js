@@ -1,8 +1,15 @@
+const mongoose = require('mongoose');
 const { Seat } = require('../models');
 const { seedSeatsForShowTime } = require('../utils/seedSeats');
 
 const getSeatsByShowTime = async (req, res, next) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.showTimeId)) {
+      return res.status(400).json({
+        message: 'Invalid showtime ID',
+      });
+    }
+
     const seats = await Seat.find({ showTimeId: req.params.showTimeId }).sort({
       seatNumber: 1,
     });
@@ -15,6 +22,12 @@ const getSeatsByShowTime = async (req, res, next) => {
 
 const seedSeats = async (req, res, next) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.showTimeId)) {
+      return res.status(400).json({
+        message: 'Invalid showtime ID',
+      });
+    }
+
     const seats = await seedSeatsForShowTime(req.params.showTimeId);
 
     res.status(201).json({

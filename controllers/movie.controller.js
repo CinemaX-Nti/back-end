@@ -17,6 +17,7 @@ const ALLOWED_MOVIE_FIELDS = [
   "trailerUrl",
   "posterUrl",
   "rating",
+  "ageRating",
   "status",
 ];
 
@@ -45,16 +46,6 @@ const createMovie = async (req, res, next) => {
       ...movieData,
       createdBy: req.user._id,
     });
-
-    const existingMovie = await Movie.findOne({
-      title: req.body.title,
-    });
-
-    if (existingMovie) {
-      return res.status(400).json({
-        message: "Movie already exists",
-      });
-    }
 
     res.status(201).json({
       success: true,

@@ -9,10 +9,59 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const SALT_ROUNDS = 8;
 const OTP_LENGTH = 6;
 const OTP_TTL_MS = 10 * 60 * 1000;
+const GOOGLE_ISSUERS = ["accounts.google.com", "https://accounts.google.com"];
 
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
 
 const isPasswordManagedProvider = (user) => user.provider === "local";
+const getGoogleAudienceCandidates = () =>
+  [
+    process.env.GOOGLE_CLIENT_ID,
+    ...(process.env.GOOGLE_CLIENT_IDS || "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].filter(Boolean);
+
+const isAudienceMismatchError = (error) =>
+  typeof error?.message === "string" &&
+  error.message.toLowerCase().includes("wrong recipient");
+
+const verifyGoogleIdToken = async (idToken) => {
+  const allowedAudiences = getGoogleAudienceCandidates();
+
+  if (!allowedAudiences.length) {
+    const error = new Error("GOOGLE_CLIENT_ID is not configured");
+    error.statusCode = 500;
+    throw error;
+  }
+
+  try {
+    return await client.verifyIdToken({
+      idToken,
+      audience: allowedAudiences,
+    });
+  } catch (error) {
+    if (!isAudienceMismatchError(error)) {
+      throw error;
+    }
+
+    // Firebase Google popup can return a valid Google token for a different
+    // client within the same project. Verify signature/issuer, then allow it.
+    const fallbackTicket = await client.verifyIdToken({ idToken });
+    const payload = fallbackTicket.getPayload();
+
+    if (
+      !payload?.aud ||
+      !GOOGLE_ISSUERS.includes(payload.iss) ||
+      payload.email_verified !== true
+    ) {
+      throw error;
+    }
+
+    return fallbackTicket;
+  }
+};
 
 const createTransporter = () => {
   if (!process.env.EMAIL || !process.env.EMAIL_PASSWORD) {
@@ -316,16 +365,13 @@ const loginWithGmail = async (req, res, next) => {
   try {
     const { idToken } = req.body;
 
-    if (!process.env.GOOGLE_CLIENT_ID) {
+    if (!getGoogleAudienceCandidates().length) {
       return res.status(500).json({
         message: "GOOGLE_CLIENT_ID is not configured",
       });
     }
 
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+    const ticket = await verifyGoogleIdToken(idToken);
 
     const payload = ticket.getPayload();
 

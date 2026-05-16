@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
-const { GENRES, normalizeGenre } = require('../utils/movieHelpers');
+const { GENRES, normalizeGenre, normalizeMovieLanguage, SUPPORTED_MOVIE_LANGUAGES } = require('../utils/movieHelpers');
+
+const AGE_RATINGS = ['G', 'PG', 'PG-13', '16+', '18+'];
 
 // Movie schema - handles all film data in the cinema system
 const movieSchema = new mongoose.Schema(
@@ -37,6 +39,8 @@ const movieSchema = new mongoose.Schema(
       maxLength: 15,
       trim: true,
       lowercase: true,
+      enum: SUPPORTED_MOVIE_LANGUAGES,
+      set: normalizeMovieLanguage,
     },
     releaseDate: Date,
     trailerUrl: String,
@@ -48,6 +52,11 @@ const movieSchema = new mongoose.Schema(
       type: Number,
       min: 0,
       max: 10,
+    },
+    ageRating: {
+      type: String,
+      enum: AGE_RATINGS,
+      default: 'PG',
     },
     status: {
       type: String,
@@ -107,3 +116,4 @@ movieSchema.pre('save', async function (next) {
 // >>>>>>> main
 
 module.exports = mongoose.model('Movie', movieSchema);
+module.exports.AGE_RATINGS = AGE_RATINGS;

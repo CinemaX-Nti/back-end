@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const QRCode = require('qrcode');
-const { Booking, Seat, ShowTime, RestaurantItem } = require('../models');
+const { Booking, Seat, ShowTime, RestaurantItem, User } = require('../models');
 const { getPaginationParams, formatPaginatedResponse } = require('../utils/movieHelpers');
 const { BOOKING_HOLD_MINUTES, releaseExpiredPendingBookings } = require('../utils/bookingExpiry');
 
@@ -42,7 +42,9 @@ const runTransactionWithRetry = async (work, maxRetries = 3) => {
 };
 
 const validateAndNormalizeBookingInput = req => {
-  const { userId, showTimeId, foodItems = [], paymentReference } = req.body;
+  const authenticatedUserId = req.user?._id?.toString();
+  const { showTimeId, foodItems = [], paymentReference } = req.body;
+  const userId = authenticatedUserId || req.body.userId;
 
   if (!mongoose.isValidObjectId(userId)) {
     throw createHttpError('A valid userId is required.');
@@ -98,6 +100,44 @@ const getAdminReviewBookingUrl = bookingId => {
   return `${baseUrl.replace(/\/+$/, '')}/api/bookings/confirm-scan/${bookingId}`;
 };
 
+const getMinimumRequiredAge = ageRating => {
+  if (ageRating === '18+') {
+    return 18;
+  }
+
+  if (ageRating === '16+') {
+    return 16;
+  }
+
+  if (ageRating === 'PG-13') {
+    return 13;
+  }
+
+  return 0;
+};
+
+const calculateAge = dateOfBirth => {
+  if (!dateOfBirth) {
+    return null;
+  }
+
+  const dob = new Date(dateOfBirth);
+
+  if (Number.isNaN(dob.getTime())) {
+    return null;
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const monthDiff = today.getMonth() - dob.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age -= 1;
+  }
+
+  return age;
+};
+
 const createBooking = async (req, res, next) => {
   try {
     const { userId, showTimeId, foodItems, paymentReference, uniqueSeatNumbers } = validateAndNormalizeBookingInput(req);
@@ -110,7 +150,10 @@ const createBooking = async (req, res, next) => {
     const qrCodeDataUrl = await QRCode.toDataURL(reviewBookingUrl);
 
     const booking = await runTransactionWithRetry(async session => {
-      const showTime = await ShowTime.findById(showTimeId).populate('movieId', 'title').populate('hallId', 'name').session(session);
+      const showTime = await ShowTime.findById(showTimeId)
+        .populate('movieId', 'title ageRating')
+        .populate('hallId', 'name')
+        .session(session);
 
       if (!showTime) {
         throw createHttpError('Showtime not found.', 404);
@@ -122,6 +165,19 @@ const createBooking = async (req, res, next) => {
 
       if (!showTime.hallId) {
         throw createHttpError('Hall not found for this showtime.', 404);
+      }
+
+      const bookingUser = await User.findById(userId).select('dateOfBirth').session(session);
+
+      if (!bookingUser) {
+        throw createHttpError('User not found.', 404);
+      }
+
+      const minimumAge = getMinimumRequiredAge(showTime.movieId.ageRating);
+      const userAge = calculateAge(bookingUser.dateOfBirth);
+
+      if (minimumAge > 0 && (userAge === null || userAge < minimumAge)) {
+        throw createHttpError(`This movie is rated ${showTime.movieId.ageRating}. You must be at least ${minimumAge} years old to book it.`, 403);
       }
 
       const seatDocuments = await Seat.find({

@@ -31,6 +31,21 @@ const PAGINATION_LIMITS = {
 };
 
 const normalizeGenre = (genre) => genre.trim().toLowerCase();
+const SUPPORTED_MOVIE_LANGUAGES = ["english", "arabic"];
+
+const normalizeMovieLanguage = (language = "") => {
+  const normalized = language.trim().toLowerCase();
+
+  if (["english", "en"].includes(normalized)) {
+    return "english";
+  }
+
+  if (["arabic", "ar", "العربية", "عربي", "arab"].includes(normalized)) {
+    return "arabic";
+  }
+
+  return normalized;
+};
 
 // Parse and validate pagination params from query string
 // Returns { skip, limit, page } ready for mongoose queries
@@ -89,7 +104,7 @@ const buildMovieFilter = ({
   }
 
   if (language) {
-    filter.language = language.trim();
+    filter.language = normalizeMovieLanguage(language);
   }
 
   // Rating range filter (0-10)
@@ -145,4 +160,6 @@ module.exports = {
   isValidObjectId,
   buildMovieFilter,
   normalizeGenre,
+  normalizeMovieLanguage,
+  SUPPORTED_MOVIE_LANGUAGES,
 };
